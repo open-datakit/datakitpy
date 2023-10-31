@@ -1,0 +1,35 @@
+[project]
+name = "opendatafit"
+version = "0.0.0"
+description = "opendata.fit datapackage helper library"
+requires-python = ">=3.9"
+authors = [
+    { name = "echus", email = "varvara@echus.co" },
+]
+dependencies = [
+    "pandas >= 1.5.0, < 2.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/opendatafit/opendatafit"
+"Bug Tracker" = "https://github.com/opendatafit/opendatafit/issues"
+
+[project.optional-dependencies]
+development = [
+    "pre-commit",
+    "build",
+]
+all = ["opendatafit[development]"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 79
+include = '\.pyi?$'
+force-exclude = '''
+/(
+    \.git
+)/
+'''
