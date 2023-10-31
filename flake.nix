@@ -20,6 +20,7 @@
           # Set the major version of Node.js
           pkgs.pre-commit
           pkgs.python310
+          pkgs.python310Packages.packaging
           pkgs.python310Packages.pandas
         ];
       };
