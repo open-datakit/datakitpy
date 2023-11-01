@@ -38,15 +38,15 @@ def get_algorithm_io_resource(datapackage, algorithm_name, io_type, io_name):
         resources
     """
     algorithm = find_by_name(datapackage["algorithms"], algorithm_name)
-    resource = find_by_name(algorithm[io_type + "s"], io_name)["resource"]
+    io = find_by_name(algorithm[io_type + "s"], io_name)
 
-    if isinstance(resource, str):
-        return find_by_name(datapackage["resources"], resource)
-    elif isinstance(resource, dict):
+    if io["type"] == "algorithmParams":
         return {
-            key: find_by_name(datapackage["resources"], r)
-            for key, r in resource.items()
+            key: find_by_name(datapackage["resources"], resource_name)
+            for key, resource_name in io["parameterSpace"].items()
         }
+    else:
+        return find_by_name(datapackage["resources"], io["resource"])
 
 
 def tabular_data_resource_to_dataframe(resource):
