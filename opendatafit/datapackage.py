@@ -40,13 +40,18 @@ def get_algorithm_io_resource(datapackage, algorithm_name, io_type, io_name):
     algorithm = find_by_name(datapackage["algorithms"], algorithm_name)
     io = find_by_name(algorithm[io_type + "s"], io_name)
 
-    if io["type"] == "algorithmParams":
-        return {
-            key: find_by_name(datapackage["resources"], resource_name)
-            for key, resource_name in io["parameterSpace"].items()
-        }
+    if io is not None:
+        if io["type"] == "algorithmParams":
+            return {
+                key: find_by_name(datapackage["resources"], resource_name)
+                for key, resource_name in io["parameterSpace"].items()
+            }
+        else:
+            return find_by_name(datapackage["resources"], io["resource"])
     else:
-        return find_by_name(datapackage["resources"], io["resource"])
+        raise ValueError(
+            "Algorithm IO " + io_type + " with name " + io_name + " not found"
+        )
 
 
 def tabular_data_resource_to_dataframe(resource):
