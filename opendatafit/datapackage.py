@@ -60,4 +60,5 @@ def tabular_data_resource_to_dataframe(resource):
 
 def dataframe_to_tabular_data_resource(df, resource):
     """Convert pandas DataFrame to Frictionless tabular data resource"""
-    return resource.update({"data": df.to_dict(orient="records")})
+    resource.update({"data": df.to_dict(orient="records")})
+    return resource
