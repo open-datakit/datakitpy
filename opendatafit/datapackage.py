@@ -56,3 +56,8 @@ def tabular_data_resource_to_dataframe(resource):
     cols = [field["name"] for field in resource["schema"]["fields"]]
     df = df[cols]
     return df
+
+
+def dataframe_to_tabular_data_resource(df, resource):
+    """Convert pandas DataFrame to Frictionless tabular data resource"""
+    return resource.update({"data": df.to_dict(orient="records")})
