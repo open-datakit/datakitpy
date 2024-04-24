@@ -1,3 +1,3 @@
-__all__ = ["datapackage"]
+__all__ = ["helpers"]
 
-from . import datapackage
+from . import helpers
