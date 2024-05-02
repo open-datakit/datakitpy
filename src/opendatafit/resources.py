@@ -19,6 +19,9 @@ class TabularDataResource:
         cols = [field["name"] for field in resource["schema"]["fields"]]
         self.data = self.data[cols]
 
+        # Set index to primary key column
+        self.data.set_index(resource["schema"]["primaryKey"], inplace=True)
+
         self._resource = resource
 
         # Convert pandas DataFrame to JSON record format
