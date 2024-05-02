@@ -23,3 +23,7 @@ class TabularDataResource:
 
         # Convert pandas DataFrame to JSON record format
         # return df.to_dict(orient="records")
+
+    def __bool__(self):
+        """False if data table is empty, True if not"""
+        return self.data
