@@ -26,4 +26,4 @@ class TabularDataResource:
 
     def __bool__(self):
         """False if data table is empty, True if not"""
-        return self.data
+        return bool(self.data)
