@@ -13,11 +13,11 @@ class TabularDataResource:
 
         # Load data into pandas DataFrame
         data = resource.pop("data")
-        self._data = pd.DataFrame.from_dict(data)
+        self.data = pd.DataFrame.from_dict(data)
 
         # Reorder columns by schema field order
         cols = [field["name"] for field in resource["schema"]["fields"]]
-        self._data = self._data[cols]
+        self.data = self.data[cols]
 
         self._resource = resource
 
