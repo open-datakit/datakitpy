@@ -1,3 +1,3 @@
-__all__ = ["helpers"]
+__all__ = ["resources"]
 
-from . import helpers
+from . import resources
