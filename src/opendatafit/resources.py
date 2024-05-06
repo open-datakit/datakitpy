@@ -1,6 +1,7 @@
 """Object definitions for loading and using data from Frictionless Resources"""
 
 
+from copy import deepcopy
 import pandas as pd
 
 
@@ -24,9 +25,12 @@ class TabularDataResource:
 
         self._resource = resource
 
-        # Convert pandas DataFrame to JSON record format
-        # return df.to_dict(orient="records")
-
     def __bool__(self):
         """False if data table is empty, True if not"""
         return not self.data.empty
+
+    def to_dict(self):
+        resource_dict = deepcopy(self._resource)
+        # Convert data from DataFrame to JSON record row format
+        resource_dict["data"] = self.data.to_dict(orient="records")
+        return resource_dict
