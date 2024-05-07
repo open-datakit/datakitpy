@@ -30,19 +30,10 @@ class TabularDataResource:
         return not self.data.empty
 
     def to_dict(self):
-        resource_dict = deepcopy(self._resource)
-
         # Convert data from DataFrame to JSON record row format
-        # Workaround for index=True not working with "records" orient
-        print("data_copy before reset:")
-        print(self.data)
-        data_copy = self.data.reset_index()
-        print("data_copy after reset:")
-        print(data_copy)
-
-        data = data_copy.to_dict(orient="records", index=True)
-        for row, index_row in zip(data, self.data.index):
-            print(row, index_row)
-
-        resource_dict["data"] = data
+        resource_dict = deepcopy(self._resource)
+        # Reset index first to workaround index=True not working with to_dict
+        resource_dict["data"] = self.data.reset_index().to_dict(
+            orient="records", index=True
+        )
         return resource_dict
