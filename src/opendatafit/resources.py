@@ -35,7 +35,10 @@ class TabularDataResource:
         # Convert data from DataFrame to JSON record row format
         # Workaround for index=True not working with "records" orient
         data_copy = self.data.copy(deep=True)
+        print("data_copy before reset:", data_copy)
         data_copy.reset_index()
+        print("data_copy after reset:", data_copy)
+
         data = data_copy.to_dict(orient="records", index=True)
         for row, index_row in zip(data, self.data.index):
             print(row, index_row)
