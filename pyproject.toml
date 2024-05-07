@@ -2,12 +2,12 @@
 name = "opendatafit"
 version = "0.0.0"
 description = "opendata.fit datapackage helper library"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 authors = [
     { name = "echus", email = "varvara@echus.co" },
 ]
 dependencies = [
-    "pandas >= 1.5.0, < 2.0",
+    "pandas >= 2.2, < 3.0",
 ]
 
 [project.urls]
