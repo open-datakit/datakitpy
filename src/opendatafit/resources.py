@@ -41,5 +41,5 @@ class TabularDataResource:
         print("data")
         pprint.pprint(resource_dict["data"])
         print("index")
-        pprint.pprint(self.data.index)
+        pprint.pprint(self.data.index.to_dict(orient="records"))
         return resource_dict
