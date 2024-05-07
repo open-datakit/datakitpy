@@ -38,8 +38,10 @@ class TabularDataResource:
         print("Signature:", signature(self.data.to_dict))
         import pprint
 
+        print("pandas version:", pd.__version__)
+
         print("data")
         pprint.pprint(resource_dict["data"])
         print("index")
-        pprint.pprint(self.data.index.to_dict(orient="records"))
+        pprint.pprint(self.data.index.to_list())
         return resource_dict
