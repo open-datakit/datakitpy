@@ -31,12 +31,12 @@ class TabularDataResource:
 
     def to_dict(self):
         resource_dict = deepcopy(self._resource)
-        # Convert data from DataFrame to JSON record row format
-        resource_dict["data"] = self.data.to_dict(orient="records", index=True)
-        import pprint
 
-        print("data")
-        pprint.pprint(resource_dict["data"])
-        print("index")
-        pprint.pprint(self.data.index.to_list())
+        # Convert data from DataFrame to JSON record row format
+        # Workaround for index=True not working with "records" orient
+        data = self.data.to_dict(orient="records", index=True)
+        for row, index_row in data, self.data.index:
+            print(row, index_row)
+
+        resource_dict["data"] = data
         return resource_dict
