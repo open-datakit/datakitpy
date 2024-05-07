@@ -11,12 +11,6 @@ class TabularDataResource:
 
     def __init__(self, resource: dict) -> None:
         """Load tabular data resource from JSON dict"""
-        import pprint
-
-        print("Loading resource")
-        pprint.pprint(resource)
-        print("End loading resource")
-
         # Load data into pandas DataFrame
         data = resource.pop("data")
         self.data = pd.DataFrame.from_dict(data)
