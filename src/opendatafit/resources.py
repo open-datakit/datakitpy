@@ -21,12 +21,13 @@ class TabularDataResource:
         data = resource.pop("data")
         self.data = pd.DataFrame.from_dict(data)
 
-        # Reorder columns by schema field order
-        cols = [field["name"] for field in resource["schema"]["fields"]]
-        self.data = self.data[cols]
+        if not self.data.empty:
+            # Reorder columns by schema field order
+            cols = [field["name"] for field in resource["schema"]["fields"]]
+            self.data = self.data[cols]
 
-        # Set index to primary key column
-        self.data.set_index(resource["schema"]["primaryKey"], inplace=True)
+            # Set index to primary key column
+            self.data.set_index(resource["schema"]["primaryKey"], inplace=True)
 
         self._resource = resource
 
