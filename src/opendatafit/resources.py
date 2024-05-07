@@ -32,5 +32,9 @@ class TabularDataResource:
     def to_dict(self):
         resource_dict = deepcopy(self._resource)
         # Convert data from DataFrame to JSON record row format
-        resource_dict["data"] = self.data.to_dict(orient="records")
+        resource_dict["data"] = self.data.to_dict(orient="records", index=True)
+        import pprint
+
+        pprint.pprint(resource_dict["data"])
+        pprint.pprint(self.data.index)
         return resource_dict
