@@ -83,24 +83,24 @@ class TabularDataResource:
     @data.setter
     def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
-        # Check if data column information matches schema
+        if not self:
+            # Unpopulated resource with no schema - set schema from metaschema
+            self._resource["schema"] = deepcopy(self._resource["metaschema"])
+
+            # TODO: Remove index properties here?
+
+        # Update resource data to match existing schema
         schema_cols = [
             field["name"] for field in self._resource["schema"]["fields"]
         ]
 
-        # Update data column/index information to match schema if required
         if list(data.columns) != schema_cols:
-            print("old cols", list(data.columns))
-            print("new cols", schema_cols)
-
             # Update index and column labels
-            print("data before", data)
             data = data.reset_index()
             data.columns = schema_cols
             data.set_index(
                 self._resource["schema"]["primaryKey"], inplace=True
             )
-            print("data after", data)
 
         # Update data
         self._data = data
