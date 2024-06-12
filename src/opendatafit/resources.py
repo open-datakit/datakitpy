@@ -106,8 +106,23 @@ class TabularDataResource:
         self._data = data
 
     def __bool__(self) -> bool:
-        """False if data table is empty, True if not"""
-        return not self._data.empty
+        """True if resource is populated, False if not.
+
+        Raises error if populated resource is missing either data or schema.
+        """
+        if self._resource["schema"] and not self._data.empty:
+            # Populated resource
+            return True
+        elif self._data.empty:
+            # Unpopulated resource
+            return False
+        else:
+            # Resource has either data or schema properties missing
+            raise ValueError(
+                "Populated resource {} missing data or schema".format(
+                    self._resource["name"]
+                )
+            )
 
     def to_dict(self) -> dict:
         """Return dict of resource data in JSON record row format"""
