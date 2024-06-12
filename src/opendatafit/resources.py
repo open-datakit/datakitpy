@@ -11,34 +11,63 @@ class TabularDataResource:
 
     def __init__(self, resource: dict) -> None:
         """Load tabular data resource from JSON dict"""
+        # When initialising a tabular data resource there are two possibilites:
+        # receiving an *empty resource* or a *populated resource*.
+        #
+        # Empty resource - metaschema is defined, data and schema are empty
+        # Populated resource - metaschema, data and schema are all defined
+        #
+        # Both empty and populated resources MUST have a metaschema defined to
+        # be loaded.
+
         # Load data into pandas DataFrame
         data = pd.DataFrame.from_dict(resource.pop("data"))
 
-        # Set data index and column information from schema
-        if resource["schema"]:
-            if not data.empty:
+        if resource["metaschema"]:
+            if resource["schema"] and not data.empty:
+                # Populated resource
+
+                # TODO: Validate schema against metaschema
+                # TODO: Validate data against schema
+
+                # Set data column order and index from schema
                 cols = [
                     field["name"] for field in resource["schema"]["fields"]
                 ]
+
                 if set(cols) == set(data.columns):
                     # Reorder columns by schema field order
                     data = data[cols]
-                    # Set index to primary key column
+
+                    # Set index to primary key column(s)
                     data.set_index(
                         resource["schema"]["primaryKey"], inplace=True
                     )
-
-                    # TODO: Check for and catch any errors due to mismatched
-                    # shape
                 else:
-                    # This should not happen if we've received a properly
-                    # validated resource
+                    # Data and column names do not match - this should not
+                    # happen if we've received a properly validated
+                    # resource
                     raise ValueError(
-                        "Data columns and schema fields do not match."
+                        (
+                            "{} resource data columns and"
+                            "schema fields do not match"
+                        ).format(resource["name"])
                     )
+            elif data.empty:
+                # Unpopulated resource, nothing to do
+                pass
+            else:
+                # Resource has either data or schema properties missing
+                raise ValueError(
+                    "Populated resource {} missing data or schema".format(
+                        resource["name"]
+                    )
+                )
         else:
             raise ValueError(
-                "{} resource schema is empty".format(resource["name"])
+                "{}: tabular data resource metaschema cannot be empty".format(
+                    resource["name"]
+                )
             )
 
         # Save data
