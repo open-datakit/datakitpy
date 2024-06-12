@@ -49,7 +49,7 @@ class TabularDataResource:
                     # resource
                     raise ValueError(
                         (
-                            "{} resource data columns and"
+                            "{} resource data columns and "
                             "schema fields do not match"
                         ).format(resource["name"])
                     )
@@ -84,23 +84,102 @@ class TabularDataResource:
     def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
         if not self:
-            # Unpopulated resource with no schema - set schema from metaschema
-            self._resource["schema"] = deepcopy(self._resource["metaschema"])
+            # Unpopulated resource, generate new schema from metaschema
+            print(
+                "Unpopulated resource {}, generating new schema".format(
+                    self._resource["name"]
+                )
+            )
 
-            # TODO: Remove index properties here?
+            print("metaschema", self._resource["metaschema"])
 
-        # Update resource data to match existing schema
+            # Declare schema fields array matching number of actual data fields
+            schema_fields = [None] * len(data.reset_index().columns)
+
+            # Update fields based on metaschema
+            # TODO: Do we need to copy/deepcopy here?
+            for metaschema_field in self._resource["metaschema"]["fields"]:
+                metaschema_field = deepcopy(metaschema_field)
+
+                # Get the indices this metaschema field applies to
+                index = metaschema_field.pop("index")
+
+                if ":" in index:
+                    # Index is slice notated
+
+                    # Parse slice notation
+                    s = slice(
+                        *(
+                            int(part) if part else None
+                            for part in index.split(":")
+                        )
+                    )
+
+                    # Update schema fields selected in the slice
+
+                    # Create array of fields to be updated
+                    schema_fields_update = [
+                        deepcopy(metaschema_field)
+                        for i in range(len(schema_fields[s]))
+                    ]
+
+                    print(
+                        "schema_fields_update before update:",
+                        schema_fields_update,
+                    )
+
+                    # Make field names unique
+                    for i, schema_field in enumerate(schema_fields_update):
+                        print(
+                            "setting schema field {} to {}".format(
+                                schema_field["name"], str(i)
+                            )
+                        )
+                        schema_field["name"] = schema_field["name"] + str(i)
+
+                    print(
+                        "schema_fields_update after update:",
+                        schema_fields_update,
+                    )
+
+                    # Set fields
+                    schema_fields[s] = schema_fields_update
+                else:
+                    # Index is an integer, set field directly
+                    schema_fields[int(index)] = metaschema_field
+
+            print("schema_fields", schema_fields)
+
+            # Set resource schema
+            self._resource["schema"] = {
+                "primaryKey": self._resource["metaschema"]["primaryKey"],
+                "fields": schema_fields,
+            }
+
+            print("resource schema", self._resource["schema"])
+
+        # Populated resource with existing schema - update data to match
         schema_cols = [
             field["name"] for field in self._resource["schema"]["fields"]
         ]
 
-        if list(data.columns) != schema_cols:
-            # Update index and column labels
-            data = data.reset_index()
-            data.columns = schema_cols
-            data.set_index(
-                self._resource["schema"]["primaryKey"], inplace=True
-            )
+        print("schema cols", schema_cols)
+
+        print("data", data)
+
+        # # Update resource data to match existing schema
+        # if list(data.columns) != schema_cols:
+        #     # Update index and column labels
+        #     data = data.reset_index()
+        #     data.columns = schema_cols
+        #     data.set_index(
+        #         self._resource["schema"]["primaryKey"], inplace=True
+        #     )
+
+        # Merge resource data labels and existing schema
+        for i, column in enumerate(data.reset_index().columns):
+            print(i, column)
+            self._resource["schema"]["fields"][i]["title"] = column
 
         # Update data
         self._data = data
