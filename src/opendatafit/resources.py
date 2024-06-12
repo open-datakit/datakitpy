@@ -38,7 +38,7 @@ class TabularDataResource:
                     )
         else:
             raise ValueError(
-                "Resource schema is empty. Resource name:", resource["name"]
+                "{} resource schema is empty".format(resource["name"])
             )
 
         # Save data
