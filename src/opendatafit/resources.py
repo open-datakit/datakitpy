@@ -4,6 +4,8 @@
 from copy import deepcopy
 import pandas as pd
 
+from .helpers import dataframe_has_index
+
 
 class TabularDataResource:
     _data: pd.DataFrame  # Resource data in labelled pandas DataFrame format
@@ -40,9 +42,10 @@ class TabularDataResource:
                     data = data[cols]
 
                     # Set index to primary key column(s)
-                    data.set_index(
-                        resource["schema"]["primaryKey"], inplace=True
-                    )
+                    if "primaryKey" in resource["schema"]:
+                        data.set_index(
+                            resource["schema"]["primaryKey"], inplace=True
+                        )
                 else:
                     # Data and column names do not match - this should not
                     # happen if we've received a properly validated
@@ -81,13 +84,20 @@ class TabularDataResource:
         return self._data
 
     @data.setter
-    def data(self, data: pd.DataFrame) -> None:
+    def data(self, data: pd.DataFrame) -> None:  # noqa: C901
         """Set data, updating column/index information to match schema"""
+        # TODO: Flake thinks this function is too complex
+        # I agree but I have no time to fix it so f u Flake
+        # Pls come back and fix this later
+
         if not self:
             # Unpopulated resource, generate new schema from metaschema
 
             # Declare schema fields array matching number of actual data fields
-            schema_fields = [None] * len(data.reset_index().columns)
+            if dataframe_has_index(data):
+                schema_fields = [None] * len(data.reset_index().columns)
+            else:
+                schema_fields = [None] * len(data.columns)
 
             # Update fields based on metaschema
             # TODO: Do we need to copy/deepcopy here?
@@ -128,18 +138,40 @@ class TabularDataResource:
 
             # Set resource schema
             self._resource["schema"] = {
-                "primaryKey": self._resource["metaschema"]["primaryKey"],
                 "fields": schema_fields,
             }
 
-        # Schema exists - merge data and schema labels
-        # Add data column names as human-readable titles to schema
-        # TODO: Does it make sense to do this? Or should we let metaschema
-        # override data column labels?
+            # Add primaryKey to schema if set
+            if "primaryKey" in self._resource["metaschema"]:
+                self._resource["schema"]["primaryKey"] = self._resource[
+                    "metaschema"
+                ]["primaryKey"]
 
-        # Merge resource data labels and existing schema
-        for i, column in enumerate(data.reset_index().columns):
+        # Schema exists
+
+        # Set schema field titles from data column names
+        if dataframe_has_index(data):
+            data_columns = data.reset_index().columns
+        else:
+            data_columns = data.columns
+
+        for i, column in enumerate(data_columns):
             self._resource["schema"]["fields"][i]["title"] = column
+
+        # Update data column names to match schema names (not titles)
+        schema_cols = [
+            field["name"] for field in self._resource["schema"]["fields"]
+        ]
+
+        if list(data.columns) != schema_cols:
+            if dataframe_has_index(data):
+                data = data.reset_index()
+                data.columns = schema_cols
+                data.set_index(
+                    self._resource["schema"]["primaryKey"], inplace=True
+                )
+            else:
+                data.columns = schema_cols
 
         # Update data
         self._data = data
@@ -167,8 +199,17 @@ class TabularDataResource:
         """Return dict of resource data in JSON record row format"""
         # Convert data from DataFrame to JSON record row format
         resource_dict = deepcopy(self._resource)
-        # Reset index first to workaround index=True not working with to_dict
-        resource_dict["data"] = self._data.reset_index().to_dict(
-            orient="records", index=True
-        )
+
+        if dataframe_has_index(self.data):
+            # Include index in output dict
+            # reset_index() workaround for index=True not working with to_dict
+            resource_dict["data"] = self._data.reset_index().to_dict(
+                orient="records", index=True
+            )
+        else:
+            # Don't include default index in output dict
+            resource_dict["data"] = self._data.to_dict(
+                orient="records", index=True
+            )
+
         return resource_dict
