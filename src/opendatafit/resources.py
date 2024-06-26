@@ -137,14 +137,23 @@ class TabularDataResource:
                     try:
                         schema_fields[int(index)] = metaschema_field
                     except IndexError:
-                        print(schema_fields)
-                        print(metaschema_field)
                         raise IndexError(
                             (
-                                "Can't set schema field with index {}: "
-                                "field index out of range. Does your data "
-                                "shape match the schema? Resource name: {}"
-                            ).format(index, self._resource["name"])
+                                "Can't set schema field with metaschema index "
+                                " {}: field index out of range. Does your "
+                                "data match the metaschema? "
+                                "Resource name: {}, "
+                                "data: {}, "
+                                "metaschema fields: {}, "
+                            ).format(
+                                index,
+                                self._resource["name"],
+                                data.reset_index().columns,
+                                [
+                                    field["name"]
+                                    for field in self._resource["metaschema"]
+                                ],
+                            )
                         )
 
             # Set resource schema
