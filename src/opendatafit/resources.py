@@ -6,8 +6,6 @@ import pandas as pd
 
 from .helpers import dataframe_has_index
 
-import pprint
-
 
 class TabularDataResource:
     _data: pd.DataFrame  # Resource data in labelled pandas DataFrame format
@@ -91,11 +89,7 @@ class TabularDataResource:
         # TODO: Flake thinks this function is too complex
         # I agree but I have no time to fix it so f u Flake
         # Pls come back and fix this later
-        print("========================================")
-        print("data")
-        pprint.pprint(data)
-        print("schema")
-        pprint.pprint(self._resource["schema"])
+
         if not self:
             # Unpopulated resource, generate new schema from metaschema
 
@@ -153,9 +147,6 @@ class TabularDataResource:
                     "metaschema"
                 ]["primaryKey"]
 
-        print("schema after set")
-        pprint.pprint(self._resource["schema"])
-
         # Schema exists
 
         # Set schema field titles from data column names
@@ -166,9 +157,6 @@ class TabularDataResource:
 
         for i, column in enumerate(data_columns):
             self._resource["schema"]["fields"][i]["title"] = column
-
-        print("schema after updating titles")
-        pprint.pprint(self._resource["schema"])
 
         # Update data column names to match schema names (not titles)
         schema_cols = [
