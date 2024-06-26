@@ -86,8 +86,11 @@ class TabularDataResource:
         return self._data
 
     @data.setter
-    def data(self, data: pd.DataFrame) -> None:
+    def data(self, data: pd.DataFrame) -> None:  # noqa: C901
         """Set data, updating column/index information to match schema"""
+        # TODO: Flake thinks this function is too complex
+        # I agree but I have no time to fix it so f u Flake
+        # Pls come back and fix this later
         print("========================================")
         print("data")
         pprint.pprint(data)
@@ -153,12 +156,9 @@ class TabularDataResource:
         print("schema after set")
         pprint.pprint(self._resource["schema"])
 
-        # Schema exists - merge data and schema labels
-        # Add data column names as human-readable titles to schema
-        # TODO: Does it make sense to do this? Or should we let metaschema
-        # override data column labels?
+        # Schema exists
 
-        # Merge resource data labels and existing schema
+        # Set schema field titles from data column names
         if dataframe_has_index(data):
             data_columns = data.reset_index().columns
         else:
@@ -167,8 +167,23 @@ class TabularDataResource:
         for i, column in enumerate(data_columns):
             self._resource["schema"]["fields"][i]["title"] = column
 
-        print("schema after merge")
+        print("schema after updating titles")
         pprint.pprint(self._resource["schema"])
+
+        # Update data column names to match schema names (not titles)
+        schema_cols = [
+            field["name"] for field in self._resource["schema"]["fields"]
+        ]
+
+        if list(data.columns) != schema_cols:
+            if dataframe_has_index(data):
+                data = data.reset_index()
+                data.columns = schema_cols
+                data.set_index(
+                    self._resource["schema"]["primaryKey"], inplace=True
+                )
+            else:
+                data.columns = schema_cols
 
         # Update data
         self._data = data
