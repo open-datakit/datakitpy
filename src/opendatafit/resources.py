@@ -144,7 +144,9 @@ class TabularDataResource:
         # override data column labels?
 
         # Merge resource data labels and existing schema
+        print(self._resource["schema"]["fields"])
         for i, column in enumerate(data.reset_index().columns):
+            print("i", i, "column", column)
             self._resource["schema"]["fields"][i]["title"] = column
 
         # Update data
