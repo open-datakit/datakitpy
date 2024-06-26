@@ -145,7 +145,15 @@ class TabularDataResource:
 
         # Merge resource data labels and existing schema
         print(self._resource["schema"]["fields"])
-        for i, column in enumerate(data.reset_index().columns):
+
+        if "primaryKey" in self._resource["schema"]:
+            # Flatten index
+            data_columns = data.reset_index().columns
+        else:
+            # Don't include index in columns
+            data_columns = data.columns
+
+        for i, column in enumerate(data_columns):
             print("i", i, "column", column)
             self._resource["schema"]["fields"][i]["title"] = column
 
