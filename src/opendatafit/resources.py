@@ -141,8 +141,8 @@ class TabularDataResource:
                             (
                                 "Can't set schema field with index {}: "
                                 "field index out of range. Does your data "
-                                "shape match the schema?"
-                            ).format(index)
+                                "shape match the schema? Resource name: {}"
+                            ).format(index, self._resource["name"])
                         )
 
             # Set resource schema
