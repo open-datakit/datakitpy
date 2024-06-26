@@ -140,10 +140,10 @@ class TabularDataResource:
                         raise IndexError(
                             (
                                 "Error while setting data: can't generate "
-                                "schema from metaschema. "
-                                "Can't set schema field with metaschema index "
-                                " {}: field index out of range. Does your "
-                                "data match the metaschema? "
+                                "schema from metaschema. Can't set schema "
+                                " field with metaschema index {}: field index "
+                                "out of range. Does your data match the "
+                                "metaschema? "
                                 "Resource name: {}, "
                                 "data: {}, "
                                 "metaschema fields: {}, "
@@ -153,7 +153,9 @@ class TabularDataResource:
                                 data.reset_index().columns,
                                 [
                                     field["name"]
-                                    for field in self._resource["metaschema"]
+                                    for field in self._resource["metaschema"][
+                                        "fields"
+                                    ]
                                 ],
                             )
                         )
