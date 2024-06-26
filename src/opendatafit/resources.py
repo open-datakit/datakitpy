@@ -86,6 +86,9 @@ class TabularDataResource:
         # Save resouce metadata
         self._resource = resource
 
+        print("schema after save")
+        pprint.pprint(self._resource["schema"])
+
     @property
     def data(self) -> pd.DataFrame:
         return self._data
@@ -93,11 +96,31 @@ class TabularDataResource:
     @data.setter
     def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
+        print("schema before data set")
+        pprint.pprint(self._resource["schema"])
         if not self:
             # Unpopulated resource, generate new schema from metaschema
+            print("generating new schema")
 
             # Declare schema fields array matching number of actual data fields
-            schema_fields = [None] * len(data.reset_index().columns)
+
+            # Check if DataFrame index is named as a surrogate for whether
+            # an index is explicitly set on data or not
+            if data.index.names[0]:
+                # Data has defined index, include in field count
+                schema_fields = [None] * len(data.reset_index().columns)
+            else:
+                # No index defined, don't include in field count
+                schema_fields = [None] * len(data.columns)
+
+            if "primaryKey" in self._resource["metaschema"]:
+                # Flatten index
+                data_columns = data.reset_index().columns
+            else:
+                # Don't include index in columns
+                data_columns = data.columns
+
+            schema_fields = [None] * len(data_columns)
 
             # Update fields based on metaschema
             # TODO: Do we need to copy/deepcopy here?
