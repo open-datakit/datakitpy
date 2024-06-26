@@ -4,6 +4,8 @@
 from copy import deepcopy
 import pandas as pd
 
+import pprint
+
 
 class TabularDataResource:
     _data: pd.DataFrame  # Resource data in labelled pandas DataFrame format
@@ -22,6 +24,13 @@ class TabularDataResource:
 
         # Load data into pandas DataFrame
         data = pd.DataFrame.from_dict(resource.pop("data"))
+
+        print("==============================")
+        print("got resource:", resource["name"])
+        print("metaschema")
+        pprint.pprint(resource["metaschema"])
+        print("schema")
+        pprint.pprint(resource["schema"])
 
         if resource["metaschema"]:
             if resource["schema"] and not data.empty:
