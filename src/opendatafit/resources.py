@@ -139,6 +139,8 @@ class TabularDataResource:
                     except IndexError:
                         raise IndexError(
                             (
+                                "Error while setting data: can't generate "
+                                "schema from metaschema. "
                                 "Can't set schema field with metaschema index "
                                 " {}: field index out of range. Does your "
                                 "data match the metaschema? "
