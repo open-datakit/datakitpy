@@ -88,6 +88,7 @@ class TabularDataResource:
     @data.setter
     def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
+        print("========================================")
         print("data")
         pprint.pprint(data)
         print("schema")
@@ -149,6 +150,9 @@ class TabularDataResource:
                     "metaschema"
                 ]["primaryKey"]
 
+        print("schema after set")
+        pprint.pprint(self._resource["schema"])
+
         # Schema exists - merge data and schema labels
         # Add data column names as human-readable titles to schema
         # TODO: Does it make sense to do this? Or should we let metaschema
@@ -162,6 +166,9 @@ class TabularDataResource:
 
         for i, column in enumerate(data_columns):
             self._resource["schema"]["fields"][i]["title"] = column
+
+        print("schema after merge")
+        pprint.pprint(self._resource["schema"])
 
         # Update data
         self._data = data
