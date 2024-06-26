@@ -137,6 +137,8 @@ class TabularDataResource:
                     try:
                         schema_fields[int(index)] = metaschema_field
                     except IndexError:
+                        print(schema_fields)
+                        print(metaschema_field)
                         raise IndexError(
                             (
                                 "Can't set schema field with index {}: "
