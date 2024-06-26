@@ -134,7 +134,16 @@ class TabularDataResource:
                     schema_fields[s] = schema_fields_update
                 else:
                     # Index is an integer, set field directly
-                    schema_fields[int(index)] = metaschema_field
+                    try:
+                        schema_fields[int(index)] = metaschema_field
+                    except IndexError:
+                        raise IndexError(
+                            (
+                                "Can't set schema field with index {}: "
+                                "field index out of range. Does your data "
+                                "shape match the schema?"
+                            ).format(index)
+                        )
 
             # Set resource schema
             self._resource["schema"] = {
