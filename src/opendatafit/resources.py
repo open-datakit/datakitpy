@@ -158,7 +158,10 @@ class TabularDataResource:
 
             print("resource schema", self._resource["schema"])
 
-        # Populated resource with existing schema - update data to match
+        # Schema exists - merge data and schema labels
+        # Add data column names as titles to schema
+        # TODO: Does it make sense to do this? Or should we let metaschema
+        # override data column labels?
         schema_cols = [
             field["name"] for field in self._resource["schema"]["fields"]
         ]
