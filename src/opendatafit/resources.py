@@ -40,9 +40,10 @@ class TabularDataResource:
                     data = data[cols]
 
                     # Set index to primary key column(s)
-                    data.set_index(
-                        resource["schema"]["primaryKey"], inplace=True
-                    )
+                    if "primaryKey" in resource["schema"]:
+                        data.set_index(
+                            resource["schema"]["primaryKey"], inplace=True
+                        )
                 else:
                     # Data and column names do not match - this should not
                     # happen if we've received a properly validated
@@ -128,9 +129,14 @@ class TabularDataResource:
 
             # Set resource schema
             self._resource["schema"] = {
-                "primaryKey": self._resource["metaschema"]["primaryKey"],
                 "fields": schema_fields,
             }
+
+            # Add primaryKey to schema if set
+            if "primaryKey" in self._resource["metaschema"]:
+                self._resource["schema"]["primaryKey"] = self._resource[
+                    "metaschema"
+                ]["primaryKey"]
 
         # Schema exists - merge data and schema labels
         # Add data column names as human-readable titles to schema
