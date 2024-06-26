@@ -85,13 +85,6 @@ class TabularDataResource:
         """Set data, updating column/index information to match schema"""
         if not self:
             # Unpopulated resource, generate new schema from metaschema
-            print(
-                "Unpopulated resource {}, generating new schema".format(
-                    self._resource["name"]
-                )
-            )
-
-            print("metaschema", self._resource["metaschema"])
 
             # Declare schema fields array matching number of actual data fields
             schema_fields = [None] * len(data.reset_index().columns)
@@ -123,24 +116,9 @@ class TabularDataResource:
                         for i in range(len(schema_fields[s]))
                     ]
 
-                    print(
-                        "schema_fields_update before update:",
-                        schema_fields_update,
-                    )
-
                     # Make field names unique
                     for i, schema_field in enumerate(schema_fields_update):
-                        print(
-                            "setting schema field {} to {}".format(
-                                schema_field["name"], str(i)
-                            )
-                        )
                         schema_field["name"] = schema_field["name"] + str(i)
-
-                    print(
-                        "schema_fields_update after update:",
-                        schema_fields_update,
-                    )
 
                     # Set fields
                     schema_fields[s] = schema_fields_update
@@ -148,40 +126,19 @@ class TabularDataResource:
                     # Index is an integer, set field directly
                     schema_fields[int(index)] = metaschema_field
 
-            print("schema_fields", schema_fields)
-
             # Set resource schema
             self._resource["schema"] = {
                 "primaryKey": self._resource["metaschema"]["primaryKey"],
                 "fields": schema_fields,
             }
 
-            print("resource schema", self._resource["schema"])
-
         # Schema exists - merge data and schema labels
-        # Add data column names as titles to schema
+        # Add data column names as human-readable titles to schema
         # TODO: Does it make sense to do this? Or should we let metaschema
         # override data column labels?
-        schema_cols = [
-            field["name"] for field in self._resource["schema"]["fields"]
-        ]
-
-        print("schema cols", schema_cols)
-
-        print("data", data)
-
-        # # Update resource data to match existing schema
-        # if list(data.columns) != schema_cols:
-        #     # Update index and column labels
-        #     data = data.reset_index()
-        #     data.columns = schema_cols
-        #     data.set_index(
-        #         self._resource["schema"]["primaryKey"], inplace=True
-        #     )
 
         # Merge resource data labels and existing schema
         for i, column in enumerate(data.reset_index().columns):
-            print(i, column)
             self._resource["schema"]["fields"][i]["title"] = column
 
         # Update data
