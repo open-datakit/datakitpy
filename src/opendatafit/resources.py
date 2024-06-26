@@ -6,8 +6,6 @@ import pandas as pd
 
 from .helpers import dataframe_has_index
 
-import pprint
-
 
 class TabularDataResource:
     _data: pd.DataFrame  # Resource data in labelled pandas DataFrame format
@@ -26,13 +24,6 @@ class TabularDataResource:
 
         # Load data into pandas DataFrame
         data = pd.DataFrame.from_dict(resource.pop("data"))
-
-        print("==============================")
-        print("got resource:", resource["name"])
-        print("metaschema")
-        pprint.pprint(resource["metaschema"])
-        print("schema")
-        pprint.pprint(resource["schema"])
 
         if resource["metaschema"]:
             if resource["schema"] and not data.empty:
@@ -88,9 +79,6 @@ class TabularDataResource:
         # Save resouce metadata
         self._resource = resource
 
-        print("schema after save")
-        pprint.pprint(self._resource["schema"])
-
     @property
     def data(self) -> pd.DataFrame:
         return self._data
@@ -98,11 +86,8 @@ class TabularDataResource:
     @data.setter
     def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
-        print("schema before data set")
-        pprint.pprint(self._resource["schema"])
         if not self:
             # Unpopulated resource, generate new schema from metaschema
-            print("generating new schema")
 
             # Declare schema fields array matching number of actual data fields
             if dataframe_has_index(data):
@@ -164,15 +149,12 @@ class TabularDataResource:
         # override data column labels?
 
         # Merge resource data labels and existing schema
-        print(self._resource["schema"]["fields"])
-
         if dataframe_has_index(data):
             data_columns = data.reset_index().columns
         else:
             data_columns = data.columns
 
         for i, column in enumerate(data_columns):
-            print("i", i, "column", column)
             self._resource["schema"]["fields"][i]["title"] = column
 
         # Update data
