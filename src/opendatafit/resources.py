@@ -6,6 +6,8 @@ import pandas as pd
 
 from .helpers import dataframe_has_index
 
+import pprint
+
 
 class TabularDataResource:
     _data: pd.DataFrame  # Resource data in labelled pandas DataFrame format
@@ -86,6 +88,10 @@ class TabularDataResource:
     @data.setter
     def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
+        print("data")
+        pprint.pprint(data)
+        print("schema")
+        pprint.pprint(self._resource["schema"])
         if not self:
             # Unpopulated resource, generate new schema from metaschema
 
