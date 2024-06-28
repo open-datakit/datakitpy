@@ -90,6 +90,9 @@ class TabularDataResource:
         # I agree but I have no time to fix it so f u Flake
         # Pls come back and fix this later
 
+        print("data setter got data:")
+        print(data)
+
         if not self:
             # Unpopulated resource, generate new schema from metaschema
 
@@ -145,20 +148,18 @@ class TabularDataResource:
                                 "out of range. Does your data match the "
                                 "metaschema? "
                                 "Resource name: {}, "
-                                "data index names: {}, "
-                                "data column names: {}, "
                                 "metaschema fields: {}, "
+                                "data: {}, "
                             ).format(
                                 index,
                                 self._resource["name"],
-                                list(data.index.names),
-                                list(data.columns),
                                 [
                                     field["name"]
                                     for field in self._resource["metaschema"][
                                         "fields"
                                     ]
                                 ],
+                                data,
                             )
                         )
 
