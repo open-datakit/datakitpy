@@ -145,12 +145,14 @@ class TabularDataResource:
                                 "out of range. Does your data match the "
                                 "metaschema? "
                                 "Resource name: {}, "
-                                "data: {}, "
+                                "data index names: {}, "
+                                "data column names: {}, "
                                 "metaschema fields: {}, "
                             ).format(
                                 index,
                                 self._resource["name"],
-                                list(data.index) + list(data.columns),
+                                list(data.index.names),
+                                list(data.columns),
                                 [
                                     field["name"]
                                     for field in self._resource["metaschema"][
