@@ -150,7 +150,7 @@ class TabularDataResource:
                             ).format(
                                 index,
                                 self._resource["name"],
-                                data.index + data.columns,
+                                list(data.index) + list(data.columns),
                                 [
                                     field["name"]
                                     for field in self._resource["metaschema"][
