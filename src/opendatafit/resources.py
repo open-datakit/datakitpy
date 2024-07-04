@@ -90,19 +90,14 @@ class TabularDataResource:
         # I agree but I have no time to fix it so f u Flake
         # Pls come back and fix this later
 
-        print("data setter got data:")
-        print(data)
-
         if not self:
             # Unpopulated resource, generate new schema from metaschema
 
             # Declare schema fields array matching number of actual data fields
             if dataframe_has_index(data):
                 schema_fields = [None] * len(data.reset_index().columns)
-                print("dataframe has index, schema_fields:", schema_fields)
             else:
                 schema_fields = [None] * len(data.columns)
-                print("dataframe has no index, schema_fields:", schema_fields)
 
             # Update fields based on metaschema
             # TODO: Do we need to copy/deepcopy here?
