@@ -4,8 +4,6 @@
 from copy import deepcopy
 import pandas as pd
 
-from .helpers import dataframe_has_index
-
 
 class TabularDataResource:
     _data: pd.DataFrame  # Resource data in labelled pandas DataFrame format
@@ -84,20 +82,13 @@ class TabularDataResource:
         return self._data
 
     @data.setter
-    def data(self, data: pd.DataFrame) -> None:  # noqa: C901
+    def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
-        # TODO: Flake thinks this function is too complex
-        # I agree but I have no time to fix it so f u Flake
-        # Pls come back and fix this later
-
         if not self:
             # Unpopulated resource, generate new schema from metaschema
 
             # Declare schema fields array matching number of actual data fields
-            if dataframe_has_index(data):
-                schema_fields = [None] * len(data.reset_index().columns)
-            else:
-                schema_fields = [None] * len(data.columns)
+            schema_fields = [None] * len(data.reset_index().columns)
 
             # Update fields based on metaschema
             # TODO: Do we need to copy/deepcopy here?
@@ -174,10 +165,7 @@ class TabularDataResource:
         # Schema exists
 
         # Set schema field titles from data column names
-        if dataframe_has_index(data):
-            data_columns = data.reset_index().columns
-        else:
-            data_columns = data.columns
+        data_columns = data.reset_index().columns
 
         for i, column in enumerate(data_columns):
             self._resource["schema"]["fields"][i]["title"] = column
@@ -188,14 +176,11 @@ class TabularDataResource:
         ]
 
         if list(data.columns) != schema_cols:
-            if dataframe_has_index(data):
-                data = data.reset_index()
-                data.columns = schema_cols
-                data.set_index(
-                    self._resource["schema"]["primaryKey"], inplace=True
-                )
-            else:
-                data.columns = schema_cols
+            data = data.reset_index()
+            data.columns = schema_cols
+            data.set_index(
+                self._resource["schema"]["primaryKey"], inplace=True
+            )
 
         # Update data
         self._data = data
@@ -224,16 +209,10 @@ class TabularDataResource:
         # Convert data from DataFrame to JSON record row format
         resource_dict = deepcopy(self._resource)
 
-        if dataframe_has_index(self.data):
-            # Include index in output dict
-            # reset_index() workaround for index=True not working with to_dict
-            resource_dict["data"] = self._data.reset_index().to_dict(
-                orient="records", index=True
-            )
-        else:
-            # Don't include default index in output dict
-            resource_dict["data"] = self._data.to_dict(
-                orient="records", index=True
-            )
+        # Include index in output dict
+        # reset_index() workaround for index=True not working with to_dict
+        resource_dict["data"] = self._data.reset_index().to_dict(
+            orient="records", index=True
+        )
 
         return resource_dict
