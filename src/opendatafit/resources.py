@@ -82,12 +82,8 @@ class TabularDataResource:
         return self._data
 
     @data.setter
-    def data(self, data: pd.DataFrame) -> None:  # noqa: C901
+    def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
-        # TODO: Flake thinks this function is too complex
-        # I agree but I have no time to fix it so f u Flake
-        # Pls come back and fix this later
-
         if not self:
             # Unpopulated resource, generate new schema from metaschema
 
