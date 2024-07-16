@@ -23,6 +23,8 @@ class TabularDataResource:
         # be loaded.
 
         # Load data into pandas DataFrame
+        print("IN TABULAR DATA RESOURCE")
+        print(resource["data"])
         data = pd.DataFrame.from_dict(resource.pop("data"))
 
         if resource["metaschema"]:
