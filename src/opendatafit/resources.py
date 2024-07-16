@@ -92,11 +92,12 @@ class TabularDataResource:
 
         # Schema exists
 
-        # Set schema field titles from data column names
+        # Remove user-defined index if defined
         if has_user_defined_index(data):
-            data_columns = data.reset_index().columns
-        else:
-            data_columns = data.columns
+            data = data.reset_index()
+
+        # Set schema field titles from data column names
+        data_columns = data.columns
 
         for i, column in enumerate(data_columns):
             self._resource["schema"]["fields"][i]["title"] = column
@@ -107,7 +108,6 @@ class TabularDataResource:
         ]
 
         if list(data.columns) != schema_cols:
-            data = data.reset_index()
             data.columns = schema_cols
             data.set_index(
                 self._resource["schema"]["primaryKey"], inplace=True
