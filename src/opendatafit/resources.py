@@ -91,6 +91,7 @@ class TabularDataResource:
             self._generate_schema(data)
 
         # Schema exists
+        print("schema:", self._resource["schema"])
 
         # Remove user-defined index if defined
         if has_user_defined_index(data):
