@@ -164,6 +164,10 @@ class TabularDataResource:
 
         # Schema exists
 
+        # Ensure index is set on data (avoids issue with reset_index including
+        # the default pandas index as a column)
+        data.set_index(self._resource["schema"]["primaryKey"], inplace=True)
+
         # Set schema field titles from data column names
         data_columns = data.reset_index().columns
 
