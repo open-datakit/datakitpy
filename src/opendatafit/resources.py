@@ -88,7 +88,7 @@ class TabularDataResource:
         """Set data, updating column/index information to match schema"""
         if not self:
             # Unpopulated resource, generate new schema before proceeding
-            self.generate_schema(data)
+            self._generate_schema(data)
 
         # Schema exists
 
