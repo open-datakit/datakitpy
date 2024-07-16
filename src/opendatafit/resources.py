@@ -154,7 +154,10 @@ class TabularDataResource:
     def _generate_schema(self, data) -> None:
         """Generate and set new resource schema from metaschema and data"""
         # Declare schema fields array matching number of actual data fields
-        schema_fields = [None] * len(data.reset_index().columns)
+        if has_user_defined_index(data):
+            schema_fields = [None] * len(data.reset_index().columns)
+        else:
+            schema_fields = [None] * len(data.columns)
 
         # Update fields based on metaschema
         # TODO: Do we need to copy/deepcopy here?
