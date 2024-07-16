@@ -4,6 +4,8 @@
 from copy import deepcopy
 import pandas as pd
 
+from .helpers import find_by_name
+
 
 class TabularDataResource:
     _data: pd.DataFrame  # Resource data in labelled pandas DataFrame format
@@ -82,7 +84,7 @@ class TabularDataResource:
         return self._data
 
     @data.setter
-    def data(self, data: pd.DataFrame) -> None:
+    def data(self, data: pd.DataFrame) -> None:  # noqa: C901
         """Set data, updating column/index information to match schema"""
         if not self:
             # Unpopulated resource, generate new schema from metaschema
@@ -164,15 +166,32 @@ class TabularDataResource:
 
         # Schema exists
 
-        # Ensure index is set on data (avoids issue with reset_index including
-        # the default pandas index as a column)
-        data.set_index(self._resource["schema"]["primaryKey"], inplace=True)
-
         # Set schema field titles from data column names
         data_columns = data.reset_index().columns
 
         for i, column in enumerate(data_columns):
             self._resource["schema"]["fields"][i]["title"] = column
+
+        # Ensure index is set on data (avoids issue with reset_index including
+        # the default pandas index as a column)
+        index = self._resource["schema"]["primaryKey"]
+
+        if isinstance(index, list):
+            # Convert primaryKey names to data titles (data is currently
+            # still indexed by user-defined titles)
+            index = [
+                find_by_name(self._resource["schema"]["fields"], i)["title"]
+                for i in index
+            ]
+        else:
+            # Assume it is a string
+            index = find_by_name(self.resource["schema"]["fields"], index)[
+                "title"
+            ]
+
+        print("index", index)
+
+        data.set_index(index, inplace=True)
 
         # Update data column names to match schema names (not titles)
         schema_cols = [
