@@ -91,14 +91,10 @@ class TabularDataResource:
             self._generate_schema(data)
 
         # Schema exists
-        print("schema:", self._resource["schema"])
 
         # Remove user-defined index if defined
         if has_user_defined_index(data):
-            print("Has user defined index")
-            print("pre:", data)
             data = data.reset_index()
-            print("post:", data)
 
         # Set schema field titles from data column names
         data_columns = data.columns
@@ -112,8 +108,6 @@ class TabularDataResource:
         ]
 
         if list(data.columns) != schema_cols:
-            print("schema cols:", schema_cols)
-            print("data before cols:", data)
             data.columns = schema_cols
             data.set_index(
                 self._resource["schema"]["primaryKey"], inplace=True
