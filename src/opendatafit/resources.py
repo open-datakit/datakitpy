@@ -116,6 +116,19 @@ class TabularDataResource:
         # Update data
         self._data = data
 
+    def to_dict(self) -> dict:
+        """Return dict of resource data in JSON record row format"""
+        # Convert data from DataFrame to JSON record row format
+        resource_dict = deepcopy(self._resource)
+
+        # Include index in output dict
+        # reset_index() workaround for index=True not working with to_dict
+        resource_dict["data"] = self._data.reset_index().to_dict(
+            orient="records", index=True
+        )
+
+        return resource_dict
+
     def __bool__(self) -> bool:
         """True if resource is populated, False if not.
 
@@ -135,18 +148,8 @@ class TabularDataResource:
                 )
             )
 
-    def to_dict(self) -> dict:
-        """Return dict of resource data in JSON record row format"""
-        # Convert data from DataFrame to JSON record row format
-        resource_dict = deepcopy(self._resource)
-
-        # Include index in output dict
-        # reset_index() workaround for index=True not working with to_dict
-        resource_dict["data"] = self._data.reset_index().to_dict(
-            orient="records", index=True
-        )
-
-        return resource_dict
+    def __str__(self) -> str:
+        return str(self._data)
 
     def _generate_schema(self, data) -> None:
         """Generate and set new resource schema from metaschema and data"""
