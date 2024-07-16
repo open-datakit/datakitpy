@@ -4,7 +4,7 @@
 from copy import deepcopy
 import pandas as pd
 
-from .helpers import find_by_name
+from .helpers import has_user_defined_index
 
 
 class TabularDataResource:
@@ -84,114 +84,22 @@ class TabularDataResource:
         return self._data
 
     @data.setter
-    def data(self, data: pd.DataFrame) -> None:  # noqa: C901
+    def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
         if not self:
-            # Unpopulated resource, generate new schema from metaschema
-
-            # Declare schema fields array matching number of actual data fields
-            schema_fields = [None] * len(data.reset_index().columns)
-
-            # Update fields based on metaschema
-            # TODO: Do we need to copy/deepcopy here?
-            for metaschema_field in self._resource["metaschema"]["fields"]:
-                metaschema_field = deepcopy(metaschema_field)
-
-                # Get the indices this metaschema field applies to
-                index = metaschema_field.pop("index")
-
-                if ":" in index:
-                    # Index is slice notated
-
-                    # Parse slice notation
-                    s = slice(
-                        *(
-                            int(part) if part else None
-                            for part in index.split(":")
-                        )
-                    )
-
-                    # Update schema fields selected in the slice
-
-                    # Create array of fields to be updated
-                    schema_fields_update = [
-                        deepcopy(metaschema_field)
-                        for i in range(len(schema_fields[s]))
-                    ]
-
-                    # Make field names unique
-                    for i, schema_field in enumerate(schema_fields_update):
-                        schema_field["name"] = schema_field["name"] + str(i)
-
-                    # Set fields
-                    schema_fields[s] = schema_fields_update
-                else:
-                    # Index is an integer, set field directly
-                    try:
-                        schema_fields[int(index)] = metaschema_field
-                    except IndexError:
-                        raise IndexError(
-                            (
-                                "Error while setting data: can't generate "
-                                "schema from metaschema. Can't set schema "
-                                " field with metaschema index {}: field index "
-                                "out of range. Does your data match the "
-                                "metaschema? "
-                                "Resource name: {}, "
-                                "metaschema fields: {}, "
-                                "data: {}, "
-                            ).format(
-                                index,
-                                self._resource["name"],
-                                [
-                                    field["name"]
-                                    for field in self._resource["metaschema"][
-                                        "fields"
-                                    ]
-                                ],
-                                data,
-                            )
-                        )
-
-            # Set resource schema
-            self._resource["schema"] = {
-                "fields": schema_fields,
-            }
-
-            # Add primaryKey to schema if set
-            if "primaryKey" in self._resource["metaschema"]:
-                self._resource["schema"]["primaryKey"] = self._resource[
-                    "metaschema"
-                ]["primaryKey"]
+            # Unpopulated resource, generate new schema before proceeding
+            self.generate_schema(data)
 
         # Schema exists
 
         # Set schema field titles from data column names
-        data_columns = data.reset_index().columns
+        if has_user_defined_index(data):
+            data_columns = data.reset_index().columns
+        else:
+            data_columns = data.columns
 
         for i, column in enumerate(data_columns):
             self._resource["schema"]["fields"][i]["title"] = column
-
-        # Ensure index is set on data (avoids issue with reset_index including
-        # the default pandas index as a column)
-        index = self._resource["schema"]["primaryKey"]
-
-        if isinstance(index, list):
-            # Convert primaryKey names to data titles (data is currently
-            # still indexed by user-defined titles)
-            index = [
-                find_by_name(self._resource["schema"]["fields"], i)["title"]
-                for i in index
-            ]
-        else:
-            # Assume it is a string
-            index = find_by_name(self.resource["schema"]["fields"], index)[
-                "title"
-            ]
-
-        print("index", index)
-
-        data.set_index(index, inplace=True)
 
         # Update data column names to match schema names (not titles)
         schema_cols = [
@@ -239,3 +147,77 @@ class TabularDataResource:
         )
 
         return resource_dict
+
+    def _generate_schema(self, data) -> None:
+        """Generate and set new resource schema from metaschema and data"""
+        # Declare schema fields array matching number of actual data fields
+        schema_fields = [None] * len(data.reset_index().columns)
+
+        # Update fields based on metaschema
+        # TODO: Do we need to copy/deepcopy here?
+        for metaschema_field in self._resource["metaschema"]["fields"]:
+            metaschema_field = deepcopy(metaschema_field)
+
+            # Get the indices this metaschema field applies to
+            index = metaschema_field.pop("index")
+
+            if ":" in index:
+                # Index is slice notated
+
+                # Parse slice notation
+                s = slice(
+                    *(int(part) if part else None for part in index.split(":"))
+                )
+
+                # Update schema fields selected in the slice
+
+                # Create array of fields to be updated
+                schema_fields_update = [
+                    deepcopy(metaschema_field)
+                    for i in range(len(schema_fields[s]))
+                ]
+
+                # Make field names unique
+                for i, schema_field in enumerate(schema_fields_update):
+                    schema_field["name"] = schema_field["name"] + str(i)
+
+                # Set fields
+                schema_fields[s] = schema_fields_update
+            else:
+                # Index is an integer, set field directly
+                try:
+                    schema_fields[int(index)] = metaschema_field
+                except IndexError:
+                    raise IndexError(
+                        (
+                            "Error while setting data: can't generate "
+                            "schema from metaschema. Can't set schema "
+                            " field with metaschema index {}: field index "
+                            "out of range. Does your data match the "
+                            "metaschema? "
+                            "Resource name: {}, "
+                            "metaschema fields: {}, "
+                            "data: {}, "
+                        ).format(
+                            index,
+                            self._resource["name"],
+                            [
+                                field["name"]
+                                for field in self._resource["metaschema"][
+                                    "fields"
+                                ]
+                            ],
+                            data,
+                        )
+                    )
+
+        # Set resource schema
+        self._resource["schema"] = {
+            "fields": schema_fields,
+        }
+
+        # Add primaryKey to schema if set
+        if "primaryKey" in self._resource["metaschema"]:
+            self._resource["schema"]["primaryKey"] = self._resource[
+                "metaschema"
+            ]["primaryKey"]
