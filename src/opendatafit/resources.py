@@ -54,8 +54,9 @@ class TabularDataResource:
                     # resource
                     raise ValueError(
                         (
-                            "{} resource data columns and "
-                            "schema fields do not match"
+                            f"{resource['name']} resource data columns "
+                            f"{data.columns} and schema fields {cols} do not "
+                            "match"
                         ).format(resource["name"])
                     )
             elif data.empty:
