@@ -124,12 +124,6 @@ class TabularDataResource:
 
         # Include index in output dict
         # reset_index() workaround for index=True not working with to_dict
-        print("========================")
-        print("data before reset_index:")
-        print(self._data)
-        print("data after reset_index:")
-        print(self._data.reset_index())
-        print("========================")
         resource_dict["data"] = self._data.reset_index().to_dict(
             orient="records", index=True
         )
