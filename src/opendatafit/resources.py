@@ -110,9 +110,9 @@ class TabularDataResource:
 
         if list(data.columns) != schema_cols:
             data.columns = schema_cols
-            data.set_index(
-                self._resource["schema"]["primaryKey"], inplace=True
-            )
+
+        # Set index to specified primary key(s)
+        data.set_index(self._resource["schema"]["primaryKey"], inplace=True)
 
         # Update data
         self._data = data
