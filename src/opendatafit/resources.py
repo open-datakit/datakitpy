@@ -1,123 +1,10 @@
 """Object definitions for loading and using data from Frictionless Resources"""
 
-import os
-import json
-import time
 from copy import deepcopy
 import pandas as pd
 
-from .helpers import find_by_name, has_user_defined_index
 
-
-# Default base datapackage path
-DEFAULT_BASE_PATH = os.getcwd()
-RESOURCES = "resources"
-METASCHEMAS = "metaschemas"
-ALGORITHMS = "algorithms"
-ARGUMENTS = "arguments"
-VIEWS = "views"
-
-
-def load_argument(
-    algorithm_name: str,
-    argument_name: str,
-    argument_space_name: str = "default",
-    base_path: str = DEFAULT_BASE_PATH,
-) -> dict:
-    """Load a specified argument"""
-    # Get name of resource and metaschema from specified argument
-    with open(
-        f"{base_path}/{ARGUMENTS}/{algorithm_name}.{argument_space_name}.json",
-        "r",
-    ) as f:
-        argument = find_by_name(json.load(f)["data"], argument_name)
-
-    if argument is None:
-        raise KeyError(
-            (
-                f"Can't find argument named {argument_name} in argument "
-                f"space {argument_space_name}"
-            )
-        )
-
-    return argument
-
-
-def load_resource(
-    resource_name: str,
-    metaschema_name: str,
-    base_path: str = DEFAULT_BASE_PATH,
-) -> dict:
-    """Load a resource with the specified metaschema"""
-    # Load resource with metaschema
-    resource_path = f"{base_path}/{RESOURCES}/{resource_name}.json"
-    print("==========================")
-    print("resource_path:", resource_path)
-    print("base_path:", base_path)
-    print("os.getcwd():", os.getcwd())
-    print("==========================")
-
-    resource = None
-
-    with open(resource_path, "r") as resource_file:
-        # Load resource object
-        resource_json = json.load(resource_file)
-
-        if "tabular-data-resource" in resource_json["profile"]:
-            with open(
-                f"{base_path}/{METASCHEMAS}/{metaschema_name}.json", "r"
-            ) as metaschema_file:
-                # Load metaschema into resource object
-                resource_json["metaschema"] = json.load(metaschema_file)[
-                    "schema"
-                ]
-
-                # Copy metaschema to resource schema if specified
-                if resource_json["schema"] == "metaschema":
-                    # Copy metaschema to schema
-                    resource_json["schema"] = resource_json["metaschema"]
-                    # Label schema as metaschema copy so we don't overwrite it
-                    # when writing back to resource
-                    resource_json["schema"]["type"] = "metaschema"
-
-                    resource = TabularDataResource(resource=resource_json)
-        else:
-            raise NotImplementedError(
-                f"Unknown resource profile \"{resource_json['profile']}\""
-            )
-
-    return resource
-
-
-def write_resource(
-    resource: dict,
-    base_path: str = DEFAULT_BASE_PATH,
-    debug: bool = False,
-) -> None:
-    """Write updated resource to file"""
-    resource_path = f"{base_path}/{RESOURCES}/{resource['name']}.json"
-
-    if debug:
-        print(f"Writing to resource at {resource_path}")
-
-    # Remove metaschema before writing
-    # This should have been loaded by load_argument
-    resource.pop("metaschema")
-
-    if resource["schema"].get("type") == "metaschema":
-        resource["schema"] = "metaschema"  # Don't write metaschema copy
-
-    with open(resource_path, "w") as f:
-        json.dump(resource, f, indent=2)
-
-    # Update modified time in datapackage.json
-    with open(f"{base_path}/datapackage.json", "r") as f:
-        dp = json.load(f)
-
-    dp["updated"] = int(time.time())
-
-    with open(f"{base_path}/datapackage.json", "w") as f:
-        json.dump(dp, f, indent=2)
+from .helpers import has_user_defined_index
 
 
 class TabularDataResource:
@@ -194,6 +81,10 @@ class TabularDataResource:
         self._resource = resource
 
     @property
+    def name(self) -> str:
+        return self._resource["name"]
+
+    @property
     def data(self) -> pd.DataFrame:
         return self._data
 
@@ -231,7 +122,9 @@ class TabularDataResource:
         self._data = data
 
     def to_dict(self) -> dict:
-        """Return dict of resource data in JSON record row format"""
+        """Return dict of resource data in Frictionless Resource format
+
+        Data returned inline in JSON record row format"""
         # Convert data from DataFrame to JSON record row format
         resource_dict = deepcopy(self._resource)
 
