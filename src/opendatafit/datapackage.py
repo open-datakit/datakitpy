@@ -50,11 +50,6 @@ def load_resource(
     """Load a resource with the specified metaschema"""
     # Load resource with metaschema
     resource_path = f"{base_path}/{RESOURCES}/{resource_name}.json"
-    print("==========================")
-    print("resource_path:", resource_path)
-    print("base_path:", base_path)
-    print("os.getcwd():", os.getcwd())
-    print("==========================")
 
     resource = None
 
