@@ -57,23 +57,21 @@ def load_resource(
         # Load resource object
         resource_json = json.load(resource_file)
 
+        # Load metaschema into resource object
+        with open(
+            f"{base_path}/{METASCHEMAS}/{metaschema_name}.json", "r"
+        ) as metaschema_file:
+            resource_json["metaschema"] = json.load(metaschema_file)["schema"]
+
+        # Copy metaschema to resource schema if specified
+        if resource_json["schema"] == "metaschema":
+            # Copy metaschema to schema
+            resource_json["schema"] = resource_json["metaschema"]
+            # Label schema as metaschema copy so we don't overwrite it
+            # when writing back to resource
+            resource_json["schema"]["type"] = "metaschema"
+
         if resource_json["profile"] == "tabular-data-resource":
-            # Load metaschema into resource object
-            with open(
-                f"{base_path}/{METASCHEMAS}/{metaschema_name}.json", "r"
-            ) as metaschema_file:
-                resource_json["metaschema"] = json.load(metaschema_file)[
-                    "schema"
-                ]
-
-            # Copy metaschema to resource schema if specified
-            if resource_json["schema"] == "metaschema":
-                # Copy metaschema to schema
-                resource_json["schema"] = resource_json["metaschema"]
-                # Label schema as metaschema copy so we don't overwrite it
-                # when writing back to resource
-                resource_json["schema"]["type"] = "metaschema"
-
             resource = TabularDataResource(resource=resource_json)
         elif resource_json["profile"] == "parameter-tabular-data-resource":
             # TODO: Create ParameterResource object to handle this case
