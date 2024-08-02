@@ -57,7 +57,7 @@ def load_resource(
         # Load resource object
         resource_json = json.load(resource_file)
 
-        if resource_json == "tabular-data-resource":
+        if resource_json["profile"] == "tabular-data-resource":
             # Load metaschema into resource object
             with open(
                 f"{base_path}/{METASCHEMAS}/{metaschema_name}.json", "r"
@@ -75,7 +75,7 @@ def load_resource(
                 resource_json["schema"]["type"] = "metaschema"
 
             resource = TabularDataResource(resource=resource_json)
-        elif resource_json == "parameter-tabular-data-resource":
+        elif resource_json["profile"] == "parameter-tabular-data-resource":
             # TODO: Create ParameterResource object to handle this case
             resource = resource_json
         else:
