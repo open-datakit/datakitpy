@@ -85,6 +85,10 @@ class TabularDataResource:
         return self._resource["name"]
 
     @property
+    def profile(self) -> str:
+        return self._resource["profile"]
+
+    @property
     def data(self) -> pd.DataFrame:
         return self._data
 
