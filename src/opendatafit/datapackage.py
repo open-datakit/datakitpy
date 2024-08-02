@@ -63,23 +63,23 @@ def load_resource(
         resource_json = json.load(resource_file)
 
         if "tabular-data-resource" in resource_json["profile"]:
+            # Load metaschema into resource object
             with open(
                 f"{base_path}/{METASCHEMAS}/{metaschema_name}.json", "r"
             ) as metaschema_file:
-                # Load metaschema into resource object
                 resource_json["metaschema"] = json.load(metaschema_file)[
                     "schema"
                 ]
 
-                # Copy metaschema to resource schema if specified
-                if resource_json["schema"] == "metaschema":
-                    # Copy metaschema to schema
-                    resource_json["schema"] = resource_json["metaschema"]
-                    # Label schema as metaschema copy so we don't overwrite it
-                    # when writing back to resource
-                    resource_json["schema"]["type"] = "metaschema"
+            # Copy metaschema to resource schema if specified
+            if resource_json["schema"] == "metaschema":
+                # Copy metaschema to schema
+                resource_json["schema"] = resource_json["metaschema"]
+                # Label schema as metaschema copy so we don't overwrite it
+                # when writing back to resource
+                resource_json["schema"]["type"] = "metaschema"
 
-                    resource = TabularDataResource(resource=resource_json)
+            resource = TabularDataResource(resource=resource_json)
         else:
             raise NotImplementedError(
                 f"Unknown resource profile \"{resource_json['profile']}\""
