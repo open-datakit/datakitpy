@@ -94,16 +94,17 @@ def write_resource(
 ) -> None:
     """Write updated resource to file"""
     resource_path = f"{base_path}/{RESOURCES}/{resource.name}.json"
+    resource_json = resource.to_dict()
 
     # Remove metaschema before writing
     # This should have been loaded by load_argument
-    resource.pop("metaschema")
+    resource_json.pop("metaschema")
 
-    if resource["schema"].get("type") == "metaschema":
-        resource["schema"] = "metaschema"  # Don't write metaschema copy
+    if resource_json["schema"].get("type") == "metaschema":
+        resource_json["schema"] = "metaschema"  # Don't write metaschema copy
 
     with open(resource_path, "w") as f:
-        json.dump(resource.to_dict(), f, indent=2)
+        json.dump(resource_json, f, indent=2)
 
     # Update modified time in datapackage.json
     with open(f"{base_path}/datapackage.json", "r") as f:
