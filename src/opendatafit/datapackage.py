@@ -46,7 +46,7 @@ def load_resource(
     resource_name: str,
     metaschema_name: str,
     base_path: str = DEFAULT_BASE_PATH,
-) -> TabularDataResource:
+) -> TabularDataResource | dict:
     """Load a resource with the specified metaschema"""
     # Load resource with metaschema
     resource_path = f"{base_path}/{RESOURCES}/{resource_name}.json"
@@ -57,7 +57,7 @@ def load_resource(
         # Load resource object
         resource_json = json.load(resource_file)
 
-        if "tabular-data-resource" in resource_json["profile"]:
+        if resource_json == "tabular-data-resource":
             # Load metaschema into resource object
             with open(
                 f"{base_path}/{METASCHEMAS}/{metaschema_name}.json", "r"
@@ -75,6 +75,9 @@ def load_resource(
                 resource_json["schema"]["type"] = "metaschema"
 
             resource = TabularDataResource(resource=resource_json)
+        elif resource_json == "parameter-tabular-data-resource":
+            # TODO: Create ParameterResource object to handle this case
+            resource = resource_json
         else:
             raise NotImplementedError(
                 f"Unknown resource profile \"{resource_json['profile']}\""
@@ -84,12 +87,16 @@ def load_resource(
 
 
 def write_resource(
-    resource: TabularDataResource,
+    resource: TabularDataResource | dict,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
     """Write updated resource to file"""
     resource_path = f"{base_path}/{RESOURCES}/{resource.name}.json"
-    resource_json = resource.to_dict()
+
+    if isinstance(resource, TabularDataResource):
+        resource_json = resource.to_dict()
+    else:
+        resource_json = resource
 
     # Remove metaschema before writing
     # This should have been loaded by load_argument
