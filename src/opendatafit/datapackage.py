@@ -91,12 +91,12 @@ def write_resource(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
     """Write updated resource to file"""
-    resource_path = f"{base_path}/{RESOURCES}/{resource.name}.json"
-
     if isinstance(resource, TabularDataResource):
         resource_json = resource.to_dict()
     else:
         resource_json = resource
+
+    resource_path = f"{base_path}/{RESOURCES}/{resource_json['name']}.json"
 
     # Remove metaschema before writing
     # This should have been loaded by load_argument
