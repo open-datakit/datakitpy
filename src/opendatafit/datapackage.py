@@ -49,7 +49,9 @@ def load_view(
     if check_resources:
         # Check resources required by the view are populated
         for resource_name in view["resources"]:
+            print(f"Checking resource {resource_name}")
             with open(f"{RESOURCES}/{resource_name}.json", "r") as f:
+                print(f"Resource data: {json.load(f)['data']}")
                 if not json.load(f)["data"]:
                     raise EmptyResourceError(
                         resource_name=resource_name,
