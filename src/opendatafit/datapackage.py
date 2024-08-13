@@ -28,7 +28,13 @@ TYPE_MAP = {
 # Exceptions
 
 
-class EmptyResourceError(Exception):
+class OdsError(Exception):
+    """Catch-all ODS exception"""
+
+    pass
+
+
+class EmptyResourceError(OdsError):
     """Raised when an empty resource causes an error"""
 
     def __init__(self, resource, message):
@@ -37,7 +43,7 @@ class EmptyResourceError(Exception):
         super().__init__(self.message)
 
 
-class InvalidProfileError(Exception):
+class InvalidProfileError(OdsError):
     """Raised when an invalid resource profile causes an error"""
 
     def __init__(self, profile, message):
@@ -46,7 +52,7 @@ class InvalidProfileError(Exception):
         super().__init__(self.message)
 
 
-class InvalidTypeError(Exception):
+class InvalidTypeError(OdsError):
     """Raised when an invalid type causes an error"""
 
     def __init__(self, actual_type, expected_type, message):
@@ -56,7 +62,7 @@ class InvalidTypeError(Exception):
         super().__init__(self.message)
 
 
-class InvalidValueError(Exception):
+class InvalidValueError(OdsError):
     """Raised when an invalid value causes an error"""
 
     def __init__(self, value, message):
@@ -65,7 +71,7 @@ class InvalidValueError(Exception):
         super().__init__(self.message)
 
 
-class InvalidEnumValueError(Exception):
+class InvalidEnumValueError(OdsError):
     """Raised when an invalid enum value causes an error"""
 
     def __init__(self, value, allowed_values, message):
