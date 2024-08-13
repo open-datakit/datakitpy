@@ -17,6 +17,19 @@ ARGUMENTS = "arguments"
 VIEWS = "views"
 
 
+def load_argument_space(
+    algorithm_name: str,
+    argument_space_name: str = "default",
+    base_path: str = DEFAULT_BASE_PATH,
+) -> dict:
+    """Load a specified argument space"""
+    with open(
+        f"{base_path}/{ARGUMENTS}/{algorithm_name}.{argument_space_name}.json",
+        "r",
+    ) as f:
+        return json.load(f)
+
+
 def load_argument(
     algorithm_name: str,
     argument_name: str,
@@ -24,12 +37,9 @@ def load_argument(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Load a specified argument"""
-    # Get name of resource and metaschema from specified argument
-    with open(
-        f"{base_path}/{ARGUMENTS}/{algorithm_name}.{argument_space_name}.json",
-        "r",
-    ) as f:
-        argument = find_by_name(json.load(f)["data"], argument_name)
+    argument_space = load_argument_space(algorithm_name, argument_space_name)
+
+    argument = find_by_name(argument_space["data"], argument_name)
 
     if argument is None:
         raise KeyError(
