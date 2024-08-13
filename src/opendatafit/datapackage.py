@@ -30,6 +30,27 @@ def load_argument_space(
         return json.load(f)
 
 
+def write_argument_space(
+    argument_space: dict,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> None:
+    """Write updated argument space to file"""
+    with open(
+        f"{base_path}/{ARGUMENTS}/{argument_space['name']}.json", "w"
+    ) as f:
+        json.dump(argument_space, f, indent=2)
+
+
+def load_argument_interface(
+    algorithm_name: str,
+    argument_name: str,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> dict:
+    """Load the algorithm interface definition for the specified argument"""
+    with open(f"{base_path}/{ALGORITHMS}/{algorithm_name}.json", "r") as f:
+        return find_by_name(json.load(f)["interface"], argument_name)
+
+
 def load_argument(
     algorithm_name: str,
     argument_name: str,
