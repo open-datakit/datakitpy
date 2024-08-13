@@ -3,13 +3,13 @@
 import json
 import os
 import time
+from typing import Any
 
 from .helpers import find_by_name
 from .resources import TabularDataResource
 
 
-# Default base datapackage path
-DEFAULT_BASE_PATH = os.getcwd()
+DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
 RESOURCES = "resources"
 METASCHEMAS = "metaschemas"
 ALGORITHMS = "algorithms"
@@ -17,19 +17,60 @@ ARGUMENTS = "arguments"
 VIEWS = "views"
 
 
+# Convenience dict mapping interface types to Python types
+TYPE_MAP = {
+    "string": str,
+    "boolean": bool,
+    "number": float | int,
+}
+
+
 # Exceptions
 
 
 class EmptyResourceError(Exception):
-    """Exception raised for errors caused by an empty resource.
+    """Raised when an empty resource causes an error"""
 
-    Attributes:
-        resource_name -- the name of the resource that caused the error
-        message -- explanation of the error
-    """
+    def __init__(self, resource, message):
+        self.resource = resource
+        self.message = message
+        super().__init__(self.message)
 
-    def __init__(self, resource_name, message):
-        self.resource_name = resource_name
+
+class InvalidProfileError(Exception):
+    """Raised when an invalid resource profile causes an error"""
+
+    def __init__(self, profile, message):
+        self.profile = profile
+        self.message = message
+        super().__init__(self.message)
+
+
+class InvalidTypeError(Exception):
+    """Raised when an invalid type causes an error"""
+
+    def __init__(self, actual_type, expected_type, message):
+        self.actual_type = actual_type
+        self.expected_type = expected_type
+        self.message = message
+        super().__init__(self.message)
+
+
+class InvalidValueError(Exception):
+    """Raised when an invalid value causes an error"""
+
+    def __init__(self, value, message):
+        self.value = value
+        self.message = message
+        super().__init__(self.message)
+
+
+class InvalidEnumValueError(Exception):
+    """Raised when an invalid enum value causes an error"""
+
+    def __init__(self, value, allowed_values, message):
+        self.value = value
+        self.allowed_values = allowed_values
         self.message = message
         super().__init__(self.message)
 
@@ -52,7 +93,7 @@ def load_view(
             with open(f"{RESOURCES}/{resource_name}.json", "r") as f:
                 if not json.load(f)["data"]:
                     raise EmptyResourceError(
-                        resource_name=resource_name,
+                        resource=resource_name,
                         message=(
                             "Can't load view with empty resource "
                             f"{resource_name}"
@@ -67,13 +108,75 @@ def load_view(
 
 def set_argument(
     argument_name: str,
+    value: Any,
     algorithm_name: str,
     argument_space_name: str = "default",
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
     """Set an argument value and check against interface definition"""
     # TODO
-    pass
+
+    # Load argument space
+    argument_space = load_argument_space(
+        algorithm_name, argument_space_name, base_path
+    )
+
+    # Load argument interface
+    interface = get_interface_for_argument(
+        algorithm_name, argument_name, base_path
+    )
+
+    # Check the argument isn't a resource that needs to be set directly
+    profile = interface.get("profile")
+    if profile in ["tabular-data-resource", "parameter-tabular-data-resource"]:
+        raise InvalidProfileError(
+            profile=profile,
+            message=(
+                f"Can't set argument with profile {profile} - edit the "
+                "resource directly"
+            ),
+        )
+
+    # Check the value matches the argument type defined in the interface
+    expected_type = interface["type"]
+    actual_type = type(value)
+    # Note: specify False as fallback value for type_map.get here to avoid
+    # "None"s leaking through
+    if TYPE_MAP.get(expected_type, False) != actual_type:
+        raise InvalidTypeError(
+            expected_type=expected_type,
+            actual_type=actual_type,
+            message=(
+                f"Argument value must be of type {expected_type}, but "
+                f"set_argument got type {actual_type}"
+            ),
+        )
+
+    # If this argument has an enum, check the value is allowed
+    if interface.get("enum", False):
+        allowed_values = [i["value"] for i in interface["enum"]]
+        if value not in allowed_values:
+            raise InvalidEnumValueError(
+                value=value,
+                allowed_values=allowed_values,
+                message=(
+                    f"Argument value must be one of {allowed_values}, but "
+                    f"set_argument got value {value}"
+                ),
+            )
+
+    # Check if nullable
+    if not interface["null"]:
+        if not value:
+            raise InvalidValueError(
+                value=value, message="Argument value cannot be null"
+            )
+
+    # Set value
+    find_by_name(argument_space["data"], argument_name)["value"] = value
+
+    # Write argument space
+    write_argument_space(argument_space, base_path)
 
 
 def load_argument_space(
