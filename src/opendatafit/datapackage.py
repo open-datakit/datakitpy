@@ -94,6 +94,31 @@ def load_resource(
     return resource
 
 
+def load_resource_by_argument(
+    algorithm_name: str,
+    argument_name: str,
+    argument_space_name: str,
+    base_path: str,
+) -> TabularDataResource:
+    """Convenience function for loading resource associated with argument"""
+    # Load argument object to get resource and metaschema names
+    argument = load_argument(
+        algorithm_name,
+        argument_name,
+        argument_space_name,
+        base_path=base_path,
+    )
+
+    # Load resource into TabularDataResource object
+    # NOTE: We currently don't have any non-tabular data resources but this
+    # may change in the future
+    return load_resource(
+        resource_name=argument["resource"],
+        metaschema_name=argument["metaschema"],
+        base_path=base_path,
+    )
+
+
 def write_resource(
     resource: TabularDataResource | dict,
     base_path: str = DEFAULT_BASE_PATH,
