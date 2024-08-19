@@ -109,9 +109,6 @@ def load_resource_by_argument(
         base_path=base_path,
     )
 
-    # Load resource into TabularDataResource object
-    # NOTE: We currently don't have any non-tabular data resources but this
-    # may change in the future
     return load_resource(
         resource_name=argument["resource"],
         metaschema_name=argument["metaschema"],
