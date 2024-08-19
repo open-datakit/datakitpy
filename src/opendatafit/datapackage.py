@@ -7,12 +7,49 @@ import json
 import os
 import time
 
+from .helpers import find_by_name
 from .resources import TabularDataResource
 
 
 DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
 RESOURCES = "resources"
 METASCHEMAS = "metaschemas"
+ARGUMENTS = "arguments"
+
+
+def load_argument_space(
+    algorithm_name: str,
+    argument_space_name: str = "default",
+    base_path: str = DEFAULT_BASE_PATH,
+) -> dict:
+    """Load a specified argument space"""
+    with open(
+        f"{base_path}/{ARGUMENTS}/{algorithm_name}.{argument_space_name}.json",
+        "r",
+    ) as f:
+        return json.load(f)
+
+
+def load_argument(
+    algorithm_name: str,
+    argument_name: str,
+    argument_space_name: str = "default",
+    base_path: str = DEFAULT_BASE_PATH,
+) -> dict:
+    """Load a specified argument"""
+    argument_space = load_argument_space(algorithm_name, argument_space_name)
+
+    argument = find_by_name(argument_space["data"], argument_name)
+
+    if argument is None:
+        raise KeyError(
+            (
+                f"Can't find argument named {argument_name} in argument "
+                f"space {argument_space_name}"
+            )
+        )
+
+    return argument
 
 
 def load_resource(
