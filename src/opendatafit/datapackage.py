@@ -30,28 +30,16 @@ def load_argument_space(
         return json.load(f)
 
 
-def load_argument(
-    algorithm_name: str,
-    argument_name: str,
-    argument_space_name: str = "default",
+def write_argument_space(
+    argument_space: dict,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
-    """Load a specified argument"""
-    argument_space = load_argument_space(
-        algorithm_name, argument_space_name, base_path=base_path
-    )
-
-    argument = find_by_name(argument_space["data"], argument_name)
-
-    if argument is None:
-        raise KeyError(
-            (
-                f"Can't find argument named {argument_name} in argument "
-                f"space {argument_space_name}"
-            )
-        )
-
-    return argument
+    """Write an argument space"""
+    with open(
+        f"{base_path}/{ARGUMENTS}/{argument_space['name']}.json",
+        "w",
+    ) as f:
+        json.dump(argument_space, f, indent=2)
 
 
 def load_resource(
@@ -105,12 +93,19 @@ def load_resource_by_argument(
 ) -> TabularDataResource:
     """Convenience function for loading resource associated with argument"""
     # Load argument object to get resource and metaschema names
-    argument = load_argument(
-        algorithm_name,
-        argument_name,
-        argument_space_name,
-        base_path=base_path,
+    argument_space = load_argument_space(
+        algorithm_name, argument_space_name, base_path=base_path
     )
+
+    argument = find_by_name(argument_space["data"], argument_name)
+
+    if argument is None:
+        raise KeyError(
+            (
+                f"Can't find argument named {argument_name} in argument "
+                f"space {argument_space_name}"
+            )
+        )
 
     return load_resource(
         resource_name=argument["resource"],
