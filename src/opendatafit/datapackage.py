@@ -12,9 +12,11 @@ from .resources import TabularDataResource
 
 
 DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
+ALGORITHMS_PATH = "algorithms"
+ARGUMENTS_PATH = "arguments"
 RESOURCES_PATH = "resources"
 METASCHEMAS_PATH = "metaschemas"
-ARGUMENTS_PATH = "arguments"
+VIEWS_PATH = "views"
 
 
 def load_argument_space(
