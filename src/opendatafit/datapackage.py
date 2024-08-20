@@ -83,25 +83,6 @@ def load_resource(
             # when writing back to resource
             resource_json["schema"]["type"] = "metaschema"
 
-            # TODO: Deal with removing index from fields here...
-            # Otherwise resources will have indexes written to their schemas
-            # after running
-
-            # # Populate schema from metaschema if specified
-            # # TODO: Should this be done in TabularDataResource?
-            # if resource["schema"] == "metaschema":
-            #     schema = deepcopy(resource["metaschema"])
-
-            #     # Remove index from fields
-            #     fields = []
-            #     for field in schema["fields"]:
-            #         del field["index"]
-            #         fields.append(field)
-
-            #     schema["fields"] = fields
-
-            #     resource["schema"] = schema
-
         if (
             resource_json["profile"] == "tabular-data-resource"
             or resource_json["profile"] == "parameter-tabular-data-resource"
