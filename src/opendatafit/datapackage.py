@@ -102,8 +102,9 @@ def load_resource(
 
             #     resource["schema"] = schema
 
-        if resource_json["profile"] == (
-            "tabular-data-resource" or "parameter-tabular-data-resource"
+        if (
+            resource_json["profile"] == "tabular-data-resource"
+            or resource_json["profile"] == "parameter-tabular-data-resource"
         ):
             # TODO: Create ParameterResource object to handle parameters
             resource = TabularDataResource(resource=resource_json)
