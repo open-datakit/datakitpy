@@ -12,11 +12,11 @@ from .resources import TabularDataResource
 
 
 DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
-ALGORITHMS_PATH = "algorithms"
-ARGUMENTS_PATH = "arguments"
-RESOURCES_PATH = "resources"
-METASCHEMAS_PATH = "metaschemas"
-VIEWS_PATH = "views"
+ALGORITHMS_DIR = "algorithms"
+ARGUMENTS_DIR = "arguments"
+RESOURCES_DIR = "resources"
+METASCHEMAS_DIR = "metaschemas"
+VIEWS_DIR = "views"
 
 
 def load_argument_space(
@@ -27,7 +27,7 @@ def load_argument_space(
     """Load a specified argument space"""
     with open(
         (
-            f"{base_path}/{ARGUMENTS_PATH}/{algorithm_name}."
+            f"{base_path}/{ARGUMENTS_DIR}/{algorithm_name}."
             f"{argument_space_name}.json"
         ),
         "r",
@@ -41,7 +41,7 @@ def write_argument_space(
 ) -> dict:
     """Write an argument space"""
     with open(
-        f"{base_path}/{ARGUMENTS_PATH}/{argument_space['name']}.json",
+        f"{base_path}/{ARGUMENTS_DIR}/{argument_space['name']}.json",
         "w",
     ) as f:
         json.dump(argument_space, f, indent=2)
@@ -54,7 +54,7 @@ def load_resource(
 ) -> TabularDataResource | dict:
     """Load a resource with the specified metaschema"""
     # Load resource with metaschema
-    resource_path = f"{base_path}/{RESOURCES_PATH}/{resource_name}.json"
+    resource_path = f"{base_path}/{RESOURCES_DIR}/{resource_name}.json"
 
     resource = None
 
@@ -64,7 +64,7 @@ def load_resource(
 
         # Load metaschema into resource object
         with open(
-            f"{base_path}/{METASCHEMAS_PATH}/{metaschema_name}.json", "r"
+            f"{base_path}/{METASCHEMAS_DIR}/{metaschema_name}.json", "r"
         ) as metaschema_file:
             resource_json["metaschema"] = json.load(metaschema_file)["schema"]
 
@@ -129,9 +129,7 @@ def write_resource(
     else:
         resource_json = resource
 
-    resource_path = (
-        f"{base_path}/{RESOURCES_PATH}/{resource_json['name']}.json"
-    )
+    resource_path = f"{base_path}/{RESOURCES_DIR}/{resource_json['name']}.json"
 
     # Remove metaschema before writing
     # This should have been loaded by load_argument
