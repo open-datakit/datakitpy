@@ -49,7 +49,7 @@ def write_argument_space(
 
 def load_resource(
     resource_name: str,
-    metaschema_name: str,
+    metaschema_name: str | None = None,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> TabularDataResource | dict:
     """Load a resource with the specified metaschema"""
@@ -62,19 +62,29 @@ def load_resource(
         # Load resource object
         resource_json = json.load(resource_file)
 
-        # Load metaschema into resource object
-        with open(
-            f"{base_path}/{METASCHEMAS_DIR}/{metaschema_name}.json", "r"
-        ) as metaschema_file:
-            resource_json["metaschema"] = json.load(metaschema_file)["schema"]
+        if metaschema_name is not None:
+            # Load metaschema into resource object
+            with open(
+                f"{base_path}/{METASCHEMAS_DIR}/{metaschema_name}.json", "r"
+            ) as metaschema_file:
+                resource_json["metaschema"] = json.load(metaschema_file)[
+                    "schema"
+                ]
 
-        # Copy metaschema to resource schema if specified
-        if resource_json["schema"] == "metaschema":
-            # Copy metaschema to schema
-            resource_json["schema"] = resource_json["metaschema"]
-            # Label schema as metaschema copy so we don't overwrite it
-            # when writing back to resource
-            resource_json["schema"]["type"] = "metaschema"
+            # Copy metaschema to resource schema if specified
+            if resource_json["schema"] == "metaschema":
+                # Copy metaschema to schema
+                resource_json["schema"] = resource_json["metaschema"]
+                # Label schema as metaschema copy so we don't overwrite it
+                # when writing back to resource
+                resource_json["schema"]["type"] = "metaschema"
+        else:
+            # TODO: Temporary mostly harmless hack in order to be able
+            # to load resource data into views, where we don't know or care
+            # about the metaschema
+            # Longer-term we should deal with this by handling empty
+            # metaschemas in TabularDataResources, but this will do for now
+            resource_json["metaschema"] = {"hello": "world"}
 
         if (
             resource_json["profile"] == "tabular-data-resource"
