@@ -1,8 +1,8 @@
 """Object definitions for loading and using data from Frictionless Resources"""
 
-
 from copy import deepcopy
 import pandas as pd
+
 
 from .helpers import has_user_defined_index
 
@@ -81,6 +81,14 @@ class TabularDataResource:
         self._resource = resource
 
     @property
+    def name(self) -> str:
+        return self._resource["name"]
+
+    @property
+    def profile(self) -> str:
+        return self._resource["profile"]
+
+    @property
     def data(self) -> pd.DataFrame:
         return self._data
 
@@ -118,7 +126,9 @@ class TabularDataResource:
         self._data = data
 
     def to_dict(self) -> dict:
-        """Return dict of resource data in JSON record row format"""
+        """Return dict of resource data in Frictionless Resource format
+
+        Data returned inline in JSON record row format"""
         # Convert data from DataFrame to JSON record row format
         resource_dict = deepcopy(self._resource)
 
