@@ -17,9 +17,9 @@
     in {
       devShells.default = pkgs.mkShell {
         buildInputs = [
-          # Set the major version of Node.js
           pkgs.pre-commit
           pkgs.python311
+          pkgs.python311Packages.pip-tools
           pkgs.python311Packages.packaging
           pkgs.python311Packages.pandas
         ];
