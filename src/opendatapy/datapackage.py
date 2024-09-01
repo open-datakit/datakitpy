@@ -6,6 +6,7 @@ Shared between base execution container entrypoint and CLI.
 import json
 import os
 import time
+from docker import DockerClient
 
 from .helpers import find_by_name
 from .resources import TabularDataResource
@@ -17,6 +18,47 @@ ARGUMENTS_DIR = "arguments"
 RESOURCES_DIR = "resources"
 METASCHEMAS_DIR = "metaschemas"
 VIEWS_DIR = "views"
+
+
+class ExecutionError(Exception):
+    def __init__(self, message, logs):
+        super().__init__(message)
+        self.logs = logs
+
+
+def execute(
+    docker_client: DockerClient,
+    algorithm_name: str,
+    argument_space_name: str = "default",
+    base_path: str = DEFAULT_BASE_PATH,
+) -> None:
+    # Get execution container name from the argument space
+    container_name = load_argument_space(
+        algorithm_name, argument_space_name, base_path
+    )["container"]
+
+    # We have to detach to get access to the container object and its logs
+    # in the event of an error
+    container = docker_client.containers.run(
+        image=container_name,
+        volumes=[f"{base_path}:/usr/src/app/datapackage"],
+        environment={
+            "ALGORITHM": algorithm_name,
+            "ARGUMENT_SPACE": argument_space_name,
+        },
+        detach=True,
+    )
+
+    # Block until container is finished running
+    result = container.wait()
+
+    if result["StatusCode"] != 0:
+        raise ExecutionError(
+            "Execution failed with status code {result['StatusCode']}",
+            logs=container.logs(),
+        )
+
+    return container.logs()
 
 
 def load_argument_space(
