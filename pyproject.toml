@@ -8,6 +8,7 @@ authors = [
 ]
 dependencies = [
     "pandas >= 2.2, < 3.0",
+    "docker >= 7.1.0, < 8",
 ]
 
 [project.urls]
