@@ -1,7 +1,4 @@
-"""Helper functions for loading and writing resources in an ODS datapackage
-
-Shared between base execution container entrypoint and CLI.
-"""
+"""Helpers for executing datapackages and loading and writing resources"""
 
 import json
 import os
@@ -26,26 +23,84 @@ class ExecutionError(Exception):
         self.logs = logs
 
 
-def execute(
+class ResourceError(Exception):
+    def __init__(self, message, resource):
+        super().__init__(message)
+        self.resource = resource
+
+
+def execute_datapackage(
     docker_client: DockerClient,
     algorithm_name: str,
     argument_space_name: str = "default",
     base_path: str = DEFAULT_BASE_PATH,
-) -> None:
+) -> str:
+    """Execute a datpackage and return execution logs"""
     # Get execution container name from the argument space
     container_name = load_argument_space(
         algorithm_name, argument_space_name, base_path
     )["container"]
 
+    return execute_container(
+        docker_client=docker_client,
+        container_name=container_name,
+        environment={
+            "ALGORITHM": algorithm_name,
+            "ARGUMENT_SPACE": argument_space_name,
+        },
+        base_path=base_path,
+    )
+
+
+def execute_view(
+    docker_client: DockerClient,
+    view_name: str,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> str:
+    """Execute a view and return execution logs"""
+    view = load_view(view_name, base_path)
+
+    # Check required resources are populated
+    for resource_name in view["resources"]:
+        with open(
+            f"{base_path}/{RESOURCES_DIR}/{resource_name}.json", "r"
+        ) as f:
+            if not json.load(f)["data"]:
+                raise ResourceError(
+                    (
+                        f"Can't render view with empty resource "
+                        f"{resource_name}. Have you executed the datapackage?"
+                    ),
+                    resource=resource_name,
+                )
+
+    # Get container name from view
+    container_name = view["container"]
+
+    # Execute view
+    return execute_container(
+        docker_client=docker_client,
+        container_name=container_name,
+        environment={
+            "VIEW": view_name,
+        },
+        base_path=base_path,
+    )
+
+
+def execute_container(
+    docker_client: DockerClient,
+    container_name: str,
+    environment: dict,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> str:
+    """Execute a container"""
     # We have to detach to get access to the container object and its logs
     # in the event of an error
     container = docker_client.containers.run(
         image=container_name,
         volumes=[f"{base_path}:/usr/src/app/datapackage"],
-        environment={
-            "ALGORITHM": algorithm_name,
-            "ARGUMENT_SPACE": argument_space_name,
-        },
+        environment=environment,
         detach=True,
     )
 
@@ -55,10 +110,19 @@ def execute(
     if result["StatusCode"] != 0:
         raise ExecutionError(
             "Execution failed with status code {result['StatusCode']}",
-            logs=container.logs(),
+            logs=container.logs().decode("utf-8").strip(),
         )
 
-    return container.logs()
+    return container.logs().decode("utf-8").strip()
+
+
+def load_view(
+    view_name: str,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> dict:
+    """Load a view"""
+    with open(f"{base_path}/{VIEWS_DIR}/{view_name}.json", "r") as f:
+        return json.load(f)
 
 
 def load_argument_space(
@@ -66,7 +130,7 @@ def load_argument_space(
     argument_space_name: str = "default",
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
-    """Load a specified argument space"""
+    """Load an argument space"""
     with open(
         (
             f"{base_path}/{ARGUMENTS_DIR}/{algorithm_name}."
