@@ -102,6 +102,7 @@ def execute_container(
         volumes=[f"{base_path}:/usr/src/app/datapackage"],
         environment=environment,
         detach=True,
+        user=os.getuid(),  # Run as current user (avoid permissions issues)
     )
 
     # Block until container is finished running
