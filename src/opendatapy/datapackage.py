@@ -179,7 +179,7 @@ def load_resource(
                 ]
 
             # Copy metaschema to resource schema if specified
-            if resource_json["schema"] == "metaschema":
+            if resource_json["schema"] == "inherit-from-format":
                 # Copy metaschema to schema
                 resource_json["schema"] = resource_json["metaschema"]
                 # Label schema as metaschema copy so we don't overwrite it
