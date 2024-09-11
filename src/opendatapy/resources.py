@@ -16,20 +16,20 @@ class TabularDataResource:
         # When initialising a tabular data resource there are two possibilites:
         # receiving an *empty resource* or a *populated resource*.
         #
-        # Empty resource - metaschema is defined, data and schema are empty
-        # Populated resource - metaschema, data and schema are all defined
+        # Empty resource - format is defined, data and schema are empty
+        # Populated resource - format, data and schema are all defined
         #
-        # Both empty and populated resources MUST have a metaschema defined to
-        # be loaded.
+        # Both empty and populated resources MUST have a format defined to be
+        # loaded.
 
         # Load data into pandas DataFrame
         data = pd.DataFrame.from_dict(resource.pop("data"))
 
-        if resource["metaschema"]:
+        if resource["format"]:
             if resource["schema"] and not data.empty:
                 # Populated resource
 
-                # TODO: Validate schema against metaschema
+                # TODO: Validate schema against format
                 # TODO: Validate data against schema
 
                 # Set data column order and index from schema
@@ -69,7 +69,7 @@ class TabularDataResource:
                 )
         else:
             raise ValueError(
-                "{}: tabular data resource metaschema cannot be empty".format(
+                "{}: tabular data resource format cannot be empty".format(
                     resource["name"]
                 )
             )
@@ -163,20 +163,20 @@ class TabularDataResource:
         return str(self._data)
 
     def _generate_schema(self, data) -> None:
-        """Generate and set new resource schema from metaschema and data"""
+        """Generate and set new resource schema from format and data"""
         # Declare schema fields array matching number of actual data fields
         if has_user_defined_index(data):
             schema_fields = [None] * len(data.reset_index().columns)
         else:
             schema_fields = [None] * len(data.columns)
 
-        # Update fields based on metaschema
+        # Update fields based on format
         # TODO: Do we need to copy/deepcopy here?
-        for metaschema_field in self._resource["metaschema"]["fields"]:
-            metaschema_field = deepcopy(metaschema_field)
+        for format_field in self._resource["format"]["fields"]:
+            format_field = deepcopy(format_field)
 
-            # Get the indices this metaschema field applies to
-            index = metaschema_field.pop("index")
+            # Get the indices this format field applies to
+            index = format_field.pop("index")
 
             if ":" in index:
                 # Index is slice notated
@@ -190,7 +190,7 @@ class TabularDataResource:
 
                 # Create array of fields to be updated
                 schema_fields_update = [
-                    deepcopy(metaschema_field)
+                    deepcopy(format_field)
                     for i in range(len(schema_fields[s]))
                 ]
 
@@ -203,26 +203,23 @@ class TabularDataResource:
             else:
                 # Index is an integer, set field directly
                 try:
-                    schema_fields[int(index)] = metaschema_field
+                    schema_fields[int(index)] = format_field
                 except IndexError:
                     raise IndexError(
                         (
-                            "Error while setting data: can't generate "
-                            "schema from metaschema. Can't set schema "
-                            " field with metaschema index {}: field index "
-                            "out of range. Does your data match the "
-                            "metaschema? "
+                            "Error while setting data: can't generate schema "
+                            "from format. Can't set schema field with format "
+                            "index {}: field index out of range. Does your "
+                            "data match the format? "
                             "Resource name: {}, "
-                            "metaschema fields: {}, "
+                            "format fields: {}, "
                             "data: {}, "
                         ).format(
                             index,
                             self._resource["name"],
                             [
                                 field["name"]
-                                for field in self._resource["metaschema"][
-                                    "fields"
-                                ]
+                                for field in self._resource["format"]["fields"]
                             ],
                             data,
                         )
@@ -234,7 +231,7 @@ class TabularDataResource:
         }
 
         # Add primaryKey to schema if set
-        if "primaryKey" in self._resource["metaschema"]:
-            self._resource["schema"]["primaryKey"] = self._resource[
-                "metaschema"
-            ]["primaryKey"]
+        if "primaryKey" in self._resource["format"]:
+            self._resource["schema"]["primaryKey"] = self._resource["format"][
+                "primaryKey"
+            ]
