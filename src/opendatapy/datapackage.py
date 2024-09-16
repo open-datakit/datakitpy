@@ -151,6 +151,7 @@ def load_resource(
     resource_name: str,
     format_name: str | None = None,
     base_path: str = DEFAULT_BASE_PATH,
+    as_dict: bool = False,  # Load resource as raw dict
 ) -> TabularDataResource | dict:
     """Load a resource with the specified format"""
     # Load resource with format
@@ -184,7 +185,9 @@ def load_resource(
             # in TabularDataResources, but this will do for now
             resource_json["format"] = {"hello": "world"}
 
-        if (
+        if as_dict:
+            resource = resource_json
+        elif (
             resource_json["profile"] == "tabular-data-resource"
             or resource_json["profile"] == "parameter-tabular-data-resource"
         ):
@@ -202,7 +205,8 @@ def load_resource_by_variable(
     variable_name: str,
     configuration_name: str,
     base_path: str,
-) -> TabularDataResource:
+    as_dict: bool = False,  # Load resource as raw dict
+) -> TabularDataResource | dict:
     """Convenience function for loading resource associated with a variable"""
     # Load configuration to get resource and format names
     configuration = load_configuration(configuration_name, base_path=base_path)
@@ -221,6 +225,7 @@ def load_resource_by_variable(
         resource_name=variable["resource"],
         format_name=variable["format"],
         base_path=base_path,
+        as_dict=as_dict,
     )
 
 
