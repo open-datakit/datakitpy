@@ -239,6 +239,7 @@ def load_resource_by_variable(
 
 def write_resource(
     resource: TabularDataResource | dict,
+    run_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
     """Write updated resource to file"""
@@ -247,14 +248,19 @@ def write_resource(
     else:
         resource_json = resource
 
-    resource_path = f"{base_path}/{RESOURCES_DIR}/{resource_json['name']}.json"
+    resource_path = (
+        f"{base_path}/{run_name}/resources/{resource_json['name']}.json"
+    )
 
-    # Remove format before writing
-    # This should have been loaded by load_resource
-    resource_json.pop("format")
+    # Remove format before writing if present
+    # This should have been loaded by load_resource in most cases
+    resource_json.pop("format", None)
 
-    if resource_json["schema"].get("type") == "format":
-        # Don't write format copy to schema
+    if (
+        isinstance(resource_json["schema"], dict)
+        and resource_json["schema"].get("type") == "format"
+    ):
+        # Don't write copied format to schema
         resource_json["schema"] = "inherit-from-format"
 
     with open(resource_path, "w") as f:
