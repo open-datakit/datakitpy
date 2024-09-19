@@ -150,8 +150,7 @@ def write_configuration(
 ) -> dict:
     """Write a run configuration"""
     with open(
-        f"{base_path}/{CONFIGURATIONS_DIR}/{configuration['name']}.json",
-        "w",
+        f"{base_path}/{configuration['name']}/configuration.json", "w"
     ) as f:
         json.dump(configuration, f, indent=2)
 
