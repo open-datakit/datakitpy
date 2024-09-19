@@ -124,6 +124,15 @@ def load_view(
         return json.load(f)
 
 
+def load_algorithm(
+    algorithm_name: str,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> dict:
+    """Load an algorithm configuration"""
+    with open(f"{base_path}/{algorithm_name}/algorithm.json", "r") as f:
+        return json.load(f)
+
+
 def load_configuration(
     configuration_name: str,
     base_path: str = DEFAULT_BASE_PATH,
