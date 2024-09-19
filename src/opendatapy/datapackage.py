@@ -128,7 +128,7 @@ def load_configuration(
     configuration_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
-    """Load an algorithm configuration"""
+    """Load a run configuration"""
     with open(
         f"{base_path}/{CONFIGURATIONS_DIR}/{configuration_name}.json", "r"
     ) as f:
@@ -139,7 +139,7 @@ def write_configuration(
     configuration: dict,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
-    """Write an algorithm configuration"""
+    """Write a run configuration"""
     with open(
         f"{base_path}/{CONFIGURATIONS_DIR}/{configuration['name']}.json",
         "w",
