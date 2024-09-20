@@ -31,20 +31,18 @@ class ResourceError(Exception):
 
 def execute_datapackage(
     docker_client: DockerClient,
-    configuration_name: str,
+    run_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> str:
     """Execute a datpackage and return execution logs"""
     # Get execution container name from the configuration
-    container_name = load_configuration(configuration_name, base_path)[
-        "container"
-    ]
+    container_name = load_run_configuration(run_name, base_path)["container"]
 
     return execute_container(
         docker_client=docker_client,
         container_name=container_name,
         environment={
-            "CONFIGURATION": configuration_name,
+            "RUN": run_name,
         },
         base_path=base_path,
     )
@@ -133,29 +131,26 @@ def load_algorithm(
         return json.load(f)
 
 
-def load_configuration(
-    configuration_name: str,
+def load_run_configuration(
+    run_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Load a run configuration"""
-    with open(
-        f"{base_path}/{CONFIGURATIONS_DIR}/{configuration_name}.json", "r"
-    ) as f:
+    with open(f"{base_path}/{run_name}/run.json", "r") as f:
         return json.load(f)
 
 
-def write_configuration(
-    configuration: dict,
+def write_run_configuration(
+    run: dict,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Write a run configuration"""
-    with open(
-        f"{base_path}/{configuration['name']}/configuration.json", "w"
-    ) as f:
-        json.dump(configuration, f, indent=2)
+    with open(f"{base_path}/{run['name']}/run.json", "w") as f:
+        json.dump(run, f, indent=2)
 
 
 def load_resource(
+    run_name: str,
     resource_name: str,
     format_name: str | None = None,
     base_path: str = DEFAULT_BASE_PATH,
@@ -163,7 +158,7 @@ def load_resource(
 ) -> TabularDataResource | dict:
     """Load a resource with the specified format"""
     # Load resource with format
-    resource_path = f"{base_path}/{RESOURCES_DIR}/{resource_name}.json"
+    resource_path = f"{base_path}/{run_name}/resources/{resource_name}.json"
 
     resource = None
 
@@ -172,9 +167,12 @@ def load_resource(
         resource_json = json.load(resource_file)
 
         if format_name is not None:
+            # Get algorithm name from run name
+            algorithm_name = run_name.split(".")[0]
+
             # Load format into resource object
             with open(
-                f"{base_path}/{FORMATS_DIR}/{format_name}.json", "r"
+                f"{base_path}/{algorithm_name}/formats/{format_name}.json", "r"
             ) as format_file:
                 resource_json["format"] = json.load(format_file)["schema"]
 
@@ -210,26 +208,27 @@ def load_resource(
 
 
 def load_resource_by_variable(
+    run_name: str,
     variable_name: str,
-    configuration_name: str,
     base_path: str,
     as_dict: bool = False,  # Load resource as raw dict
 ) -> TabularDataResource | dict:
     """Convenience function for loading resource associated with a variable"""
     # Load configuration to get resource and format names
-    configuration = load_configuration(configuration_name, base_path=base_path)
+    configuration = load_run_configuration(run_name, base_path=base_path)
 
     variable = find_by_name(configuration["data"], variable_name)
 
     if variable is None:
         raise KeyError(
             (
-                f"Can't find variable named {variable_name} in configuration "
-                f"{configuration_name}"
+                f"Can't find variable named {variable_name} in run "
+                f"configuration {run_name}"
             )
         )
 
     return load_resource(
+        run_name=run_name,
         resource_name=variable["resource"],
         format_name=variable["format"],
         base_path=base_path,
@@ -238,8 +237,8 @@ def load_resource_by_variable(
 
 
 def write_resource(
-    resource: TabularDataResource | dict,
     run_name: str,
+    resource: TabularDataResource | dict,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
     """Write updated resource to file"""
