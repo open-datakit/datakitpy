@@ -43,7 +43,7 @@ class ResourceError(Exception):
         self.resource = resource
 
 
-# Helpers
+# General helpers
 
 
 def get_algorithm_name(run_name):
@@ -51,7 +51,21 @@ def get_algorithm_name(run_name):
     return run_name.split(".")[0]
 
 
-# datapackage functions
+# Private helpers
+
+
+def _update_modified_time(base_path: str = DEFAULT_BASE_PATH) -> None:
+    # Update modified time in datapackage.json
+    with open(DATAPACKAGE_FILE.format(base_path=base_path), "r") as f:
+        dp = json.load(f)
+
+    dp["updated"] = int(time.time())
+
+    with open(DATAPACKAGE_FILE.format(base_path=base_path), "w") as f:
+        json.dump(dp, f, indent=2)
+
+
+# Datapackage helpers
 
 
 def execute_datapackage(
@@ -193,13 +207,41 @@ def load_run_configuration(
 def write_run_configuration(
     run: dict,
     base_path: str = DEFAULT_BASE_PATH,
-) -> dict:
+) -> None:
     """Write a run configuration"""
     with open(
         RUN_FILE.format(base_path=base_path, run_name=run["name"]),
         "w",
     ) as f:
         json.dump(run, f, indent=2)
+
+    _update_modified_time(base_path=base_path)
+
+
+def load_datapackage_configuration(
+    base_path: str = DEFAULT_BASE_PATH,
+) -> dict:
+    """Load datapackage configuration"""
+    with open(
+        DATAPACKAGE_FILE.format(base_path=base_path),
+        "r",
+    ) as f:
+        return json.load(f)
+
+
+def write_datapackage_configuration(
+    datapackage: dict,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> None:
+    """Write datapackage configuration"""
+    # Set last modified time to now
+    datapackage["updated"] = int(time.time())
+
+    with open(
+        DATAPACKAGE_FILE.format(base_path=base_path),
+        "w",
+    ) as f:
+        json.dump(datapackage, f, indent=2)
 
 
 def load_resource(
@@ -326,11 +368,4 @@ def write_resource(
     ) as f:
         json.dump(resource_json, f, indent=2)
 
-    # Update modified time in datapackage.json
-    with open(DATAPACKAGE_FILE.format(base_path=base_path), "r") as f:
-        dp = json.load(f)
-
-    dp["updated"] = int(time.time())
-
-    with open(DATAPACKAGE_FILE.format(base_path=base_path), "w") as f:
-        json.dump(dp, f, indent=2)
+    _update_modified_time(base_path=base_path)
