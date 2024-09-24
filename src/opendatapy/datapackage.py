@@ -12,6 +12,9 @@ from .resources import TabularDataResource
 DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
 
 
+# Custom exceptions
+
+
 class ExecutionError(Exception):
     def __init__(self, message, logs):
         super().__init__(message)
@@ -22,6 +25,17 @@ class ResourceError(Exception):
     def __init__(self, message, resource):
         super().__init__(message)
         self.resource = resource
+
+
+# Helpers
+
+
+def get_algorithm_name(run_name):
+    """Get algorithm name from run name"""
+    return run_name.split(".")[0]
+
+
+# datapackage functions
 
 
 def execute_datapackage(
@@ -45,6 +59,7 @@ def execute_datapackage(
 
 def execute_view(
     docker_client: DockerClient,
+    run_name: str,
     view_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> str:
@@ -53,7 +68,9 @@ def execute_view(
 
     # Check required resources are populated
     for resource_name in view["resources"]:
-        with open(f"{base_path}/resources/{resource_name}.json", "r") as f:
+        with open(
+            f"{base_path}/{run_name}/resources/{resource_name}.json", "r"
+        ) as f:
             if not json.load(f)["data"]:
                 raise ResourceError(
                     (
@@ -160,8 +177,7 @@ def load_resource(
         resource_json = json.load(resource_file)
 
         if format_name is not None:
-            # Get algorithm name from run name
-            algorithm_name = run_name.split(".")[0]
+            algorithm_name = get_algorithm_name(run_name)
 
             # Load format into resource object
             with open(
