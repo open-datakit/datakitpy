@@ -131,7 +131,10 @@ def load_view(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Load a view"""
-    with open(f"{base_path}/{run_name}/views/{view_name}.json", "r") as f:
+    with open(
+        f"{base_path}/{get_algorithm_name(run_name)}/views/{view_name}.json",
+        "r",
+    ) as f:
         return json.load(f)
 
 
