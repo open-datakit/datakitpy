@@ -12,6 +12,22 @@ from .resources import TabularDataResource
 DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
 
 
+# Path helper format strings
+
+
+RESOURCES_DIR = "{base_path}/{run_name}/resources"
+RESOURCE_FILE = "{base_path}/{run_name}/resources/{resource_name}.json"
+VIEWS_DIR = "{base_path}/{algorithm_name}/views"
+VIEW_ARTEFACTS_DIR = "{base_path}/{run_name}/views"
+VIEW_FILE = "{base_path}/{algorithm_name}/views/{view_name}.json"
+ALGORITHM_FILE = "{base_path}/{algorithm_name}/algorithm.json"
+ALGORITHM_DIR = "{base_path}/{algorithm_name}"
+RUN_DIR = "{base_path}/{run_name}"
+RUN_FILE = "{base_path}/{run_name}/run.json"
+FORMAT_FILE = "{base_path}/{algorithm_name}/formats/{format_name}.json"
+DATAPACKAGE_FILE = "{base_path}/datapackage.json"
+
+
 # Custom exceptions
 
 
@@ -33,22 +49,6 @@ class ResourceError(Exception):
 def get_algorithm_name(run_name):
     """Get algorithm name from run name"""
     return run_name.split(".")[0]
-
-
-# Path helper format strings
-
-
-resources_path = "{base_path}/{run_name}/resources"
-resource_path = "{base_path}/{run_name}/resources/{resource_name}.json"
-views_path = "{base_path}/{algorithm_name}/views"
-view_artefacts_path = "{base_path}/{run_name}/views"
-view_path = "{base_path}/{algorithm_name}/views/{view_name}.json"
-algorithm_path = "{base_path}/{algorithm_name}/algorithm.json"
-ALGORITHM_DIR = "{base_path}/{algorithm_name}"
-run_path = "{base_path}/{run_name}"
-run_configuration_path = "{base_path}/{run_name}/run.json"
-format_path = "{base_path}/{algorithm_name}/formats/{format_name}.json"
-datapackage_path = "{base_path}/datapackage.json"
 
 
 # datapackage functions
@@ -87,7 +87,7 @@ def execute_view(
     # Check required resources are populated
     for resource_name in view["resources"]:
         with open(
-            resource_path.format(
+            RESOURCE_FILE.format(
                 base_path=base_path,
                 run_name=run_name,
                 resource_name=resource_name,
@@ -154,7 +154,7 @@ def load_view(
 ) -> dict:
     """Load a view"""
     with open(
-        view_path.format(
+        VIEW_FILE.format(
             base_path=base_path,
             algorithm_name=get_algorithm_name(run_name),
             view_name=view_name,
@@ -170,7 +170,7 @@ def load_algorithm(
 ) -> dict:
     """Load an algorithm configuration"""
     with open(
-        algorithm_path.format(
+        ALGORITHM_FILE.format(
             base_path=base_path, algorithm_name=algorithm_name
         ),
         "r",
@@ -184,7 +184,7 @@ def load_run_configuration(
 ) -> dict:
     """Load a run configuration"""
     with open(
-        run_configuration_path.format(base_path=base_path, run_name=run_name),
+        RUN_FILE.format(base_path=base_path, run_name=run_name),
         "r",
     ) as f:
         return json.load(f)
@@ -196,9 +196,7 @@ def write_run_configuration(
 ) -> dict:
     """Write a run configuration"""
     with open(
-        run_configuration_path.format(
-            base_path=base_path, run_name=run["name"]
-        ),
+        RUN_FILE.format(base_path=base_path, run_name=run["name"]),
         "w",
     ) as f:
         json.dump(run, f, indent=2)
@@ -216,7 +214,7 @@ def load_resource(
     resource = None
 
     with open(
-        resource_path.format(
+        RESOURCE_FILE.format(
             base_path=base_path, run_name=run_name, resource_name=resource_name
         ),
         "r",
@@ -227,7 +225,7 @@ def load_resource(
         if format_name is not None:
             # Load format into resource object
             with open(
-                format_path.format(
+                FORMAT_FILE.format(
                     base_path=base_path,
                     algorithm_name=get_algorithm_name(run_name),
                     format_name=format_name,
@@ -319,7 +317,7 @@ def write_resource(
         resource_json["schema"] = "inherit-from-format"
 
     with open(
-        resource_path.format(
+        RESOURCE_FILE.format(
             base_path=base_path,
             run_name=run_name,
             resource_name=resource_json["name"],
@@ -329,10 +327,10 @@ def write_resource(
         json.dump(resource_json, f, indent=2)
 
     # Update modified time in datapackage.json
-    with open(datapackage_path.format(base_path=base_path), "r") as f:
+    with open(DATAPACKAGE_FILE.format(base_path=base_path), "r") as f:
         dp = json.load(f)
 
     dp["updated"] = int(time.time())
 
-    with open(datapackage_path.format(base_path=base_path), "w") as f:
+    with open(DATAPACKAGE_FILE.format(base_path=base_path), "w") as f:
         json.dump(dp, f, indent=2)
