@@ -108,6 +108,7 @@ def execute_view(
         docker_client=docker_client,
         container_name=container_name,
         environment={
+            "RUN": run_name,
             "VIEW": view_name,
         },
         base_path=base_path,
