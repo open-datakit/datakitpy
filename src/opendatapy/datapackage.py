@@ -10,11 +10,6 @@ from .resources import TabularDataResource
 
 
 DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
-ALGORITHMS_DIR = "algorithms"
-CONFIGURATIONS_DIR = "configurations"
-RESOURCES_DIR = "resources"
-FORMATS_DIR = "formats"
-VIEWS_DIR = "views"
 
 
 class ExecutionError(Exception):
@@ -58,9 +53,7 @@ def execute_view(
 
     # Check required resources are populated
     for resource_name in view["resources"]:
-        with open(
-            f"{base_path}/{RESOURCES_DIR}/{resource_name}.json", "r"
-        ) as f:
+        with open(f"{base_path}/resources/{resource_name}.json", "r") as f:
             if not json.load(f)["data"]:
                 raise ResourceError(
                     (
@@ -118,7 +111,7 @@ def load_view(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Load a view"""
-    with open(f"{base_path}/{VIEWS_DIR}/{view_name}.json", "r") as f:
+    with open(f"{base_path}/{view_name}.json", "r") as f:
         return json.load(f)
 
 
