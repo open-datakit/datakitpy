@@ -124,11 +124,12 @@ def execute_container(
 
 
 def load_view(
+    run_name: str,
     view_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Load a view"""
-    with open(f"{base_path}/{view_name}.json", "r") as f:
+    with open(f"{base_path}/{run_name}/views/{view_name}.json", "r") as f:
         return json.load(f)
 
 
