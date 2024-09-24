@@ -328,10 +328,10 @@ def write_resource(
         json.dump(resource_json, f, indent=2)
 
     # Update modified time in datapackage.json
-    with open(datapackage_path.format(base_path), "r") as f:
+    with open(datapackage_path.format(base_path=base_path), "r") as f:
         dp = json.load(f)
 
     dp["updated"] = int(time.time())
 
-    with open(datapackage_path.format(base_path), "w") as f:
+    with open(datapackage_path.format(base_path=base_path), "w") as f:
         json.dump(dp, f, indent=2)
