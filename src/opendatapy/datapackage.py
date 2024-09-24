@@ -38,6 +38,7 @@ def get_algorithm_name(run_name):
 # Path helper format strings
 
 
+resources_path = "{base_path}/{run_name}/resources"
 resource_path = "{base_path}/{run_name}/resources/{resource_name}.json"
 view_path = "{base_path}/{algorithm_name}/views/{view_name}.json"
 view_file_path = "{base_path}/{algorithm_name}/views/{view_file_name}"
