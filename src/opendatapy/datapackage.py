@@ -64,7 +64,9 @@ def execute_view(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> str:
     """Execute a view and return execution logs"""
-    view = load_view(view_name, base_path)
+    view = load_view(
+        run_name=run_name, view_name=view_name, base_path=base_path
+    )
 
     # Check required resources are populated
     for resource_name in view["resources"]:
