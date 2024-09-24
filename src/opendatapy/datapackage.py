@@ -35,6 +35,19 @@ def get_algorithm_name(run_name):
     return run_name.split(".")[0]
 
 
+# Path helper format strings
+
+
+resource_path = "{base_path}/{run_name}/resources/{resource_name}.json"
+view_path = "{base_path}/{get_algorithm_name(run_name)}/views/{view_name}.json"
+algorithm_path = "{base_path}/{algorithm_name}/algorithm.json"
+run_configuration_path = "{base_path}/{run_name}/run.json"
+format_path = (
+    "{base_path}/{get_algorithm_name(run_name)}/formats/{format_name}.json"
+)
+datapackage_path = "{base_path}/datapackage.json"
+
+
 # datapackage functions
 
 
@@ -71,7 +84,12 @@ def execute_view(
     # Check required resources are populated
     for resource_name in view["resources"]:
         with open(
-            f"{base_path}/{run_name}/resources/{resource_name}.json", "r"
+            resource_path.format(
+                base_path=base_path,
+                run_name=run_name,
+                resource_name=resource_name,
+            ),
+            "r",
         ) as f:
             if not json.load(f)["data"]:
                 raise ResourceError(
@@ -132,7 +150,9 @@ def load_view(
 ) -> dict:
     """Load a view"""
     with open(
-        f"{base_path}/{get_algorithm_name(run_name)}/views/{view_name}.json",
+        view_path.format(
+            base_path=base_path, run_name=run_name, view_name=view_name
+        ),
         "r",
     ) as f:
         return json.load(f)
@@ -143,7 +163,12 @@ def load_algorithm(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Load an algorithm configuration"""
-    with open(f"{base_path}/{algorithm_name}/algorithm.json", "r") as f:
+    with open(
+        algorithm_path.format(
+            base_path=base_path, algorithm_name=algorithm_name
+        ),
+        "r",
+    ) as f:
         return json.load(f)
 
 
@@ -152,7 +177,10 @@ def load_run_configuration(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Load a run configuration"""
-    with open(f"{base_path}/{run_name}/run.json", "r") as f:
+    with open(
+        run_configuration_path.format(base_path=base_path, run_name=run_name),
+        "r",
+    ) as f:
         return json.load(f)
 
 
@@ -161,7 +189,12 @@ def write_run_configuration(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Write a run configuration"""
-    with open(f"{base_path}/{run['name']}/run.json", "w") as f:
+    with open(
+        run_configuration_path.format(
+            base_path=base_path, run_name=run["name"]
+        ),
+        "w",
+    ) as f:
         json.dump(run, f, indent=2)
 
 
@@ -174,20 +207,26 @@ def load_resource(
 ) -> TabularDataResource | dict:
     """Load a resource with the specified format"""
     # Load resource with format
-    resource_path = f"{base_path}/{run_name}/resources/{resource_name}.json"
-
     resource = None
 
-    with open(resource_path, "r") as resource_file:
+    with open(
+        resource_path.format(
+            base_path=base_path, run_name=run_name, resource_name=resource_name
+        ),
+        "r",
+    ) as resource_file:
         # Load resource object
         resource_json = json.load(resource_file)
 
         if format_name is not None:
-            algorithm_name = get_algorithm_name(run_name)
-
             # Load format into resource object
             with open(
-                f"{base_path}/{algorithm_name}/formats/{format_name}.json", "r"
+                format_path.format(
+                    base_path=base_path,
+                    run_name=run_name,
+                    format_name=format_name,
+                ),
+                "r",
             ) as format_file:
                 resource_json["format"] = json.load(format_file)["schema"]
 
@@ -262,10 +301,6 @@ def write_resource(
     else:
         resource_json = resource
 
-    resource_path = (
-        f"{base_path}/{run_name}/resources/{resource_json['name']}.json"
-    )
-
     # Remove format before writing if present
     # This should have been loaded by load_resource in most cases
     resource_json.pop("format", None)
@@ -277,14 +312,21 @@ def write_resource(
         # Don't write copied format to schema
         resource_json["schema"] = "inherit-from-format"
 
-    with open(resource_path, "w") as f:
+    with open(
+        resource_path.format(
+            base_path=base_path,
+            run_name=run_name,
+            resource_name=resource_json["name"],
+        ),
+        "w",
+    ) as f:
         json.dump(resource_json, f, indent=2)
 
     # Update modified time in datapackage.json
-    with open(f"{base_path}/datapackage.json", "r") as f:
+    with open(datapackage_path.format(base_path), "r") as f:
         dp = json.load(f)
 
     dp["updated"] = int(time.time())
 
-    with open(f"{base_path}/datapackage.json", "w") as f:
+    with open(datapackage_path.format(base_path), "w") as f:
         json.dump(dp, f, indent=2)
