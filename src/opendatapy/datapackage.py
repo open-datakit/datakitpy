@@ -40,7 +40,7 @@ def get_algorithm_name(run_name):
 
 resource_path = "{base_path}/{run_name}/resources/{resource_name}.json"
 view_path = "{base_path}/{algorithm_name}/views/{view_name}.json"
-view_file_path = "{base_path}/{algorithm_name}/views/{view_file}"
+view_file_path = "{base_path}/{algorithm_name}/views/{view_file_name}"
 algorithm_path = "{base_path}/{algorithm_name}/algorithm.json"
 run_configuration_path = "{base_path}/{run_name}/run.json"
 format_path = "{base_path}/{algorithm_name}/formats/{format_name}.json"
