@@ -109,6 +109,7 @@ class TabularDataResource:
         data_columns = data.columns
 
         for i, column in enumerate(data_columns):
+            print(self._resource["schema"])
             self._resource["schema"]["fields"][i]["title"] = column
 
         # Update data column names to match schema names (not titles)
