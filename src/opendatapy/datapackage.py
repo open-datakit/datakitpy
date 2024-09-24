@@ -39,12 +39,10 @@ def get_algorithm_name(run_name):
 
 
 resource_path = "{base_path}/{run_name}/resources/{resource_name}.json"
-view_path = "{base_path}/{get_algorithm_name(run_name)}/views/{view_name}.json"
+view_path = "{base_path}/{algorithm_name}/views/{view_name}.json"
 algorithm_path = "{base_path}/{algorithm_name}/algorithm.json"
 run_configuration_path = "{base_path}/{run_name}/run.json"
-format_path = (
-    "{base_path}/{get_algorithm_name(run_name)}/formats/{format_name}.json"
-)
+format_path = "{base_path}/{algorithm_name}/formats/{format_name}.json"
 datapackage_path = "{base_path}/datapackage.json"
 
 
@@ -152,7 +150,9 @@ def load_view(
     """Load a view"""
     with open(
         view_path.format(
-            base_path=base_path, run_name=run_name, view_name=view_name
+            base_path=base_path,
+            algorithm_name=get_algorithm_name(run_name),
+            view_name=view_name,
         ),
         "r",
     ) as f:
@@ -224,7 +224,7 @@ def load_resource(
             with open(
                 format_path.format(
                     base_path=base_path,
-                    run_name=run_name,
+                    algorithm_name=get_algorithm_name(run_name),
                     format_name=format_name,
                 ),
                 "r",
