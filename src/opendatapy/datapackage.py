@@ -10,11 +10,25 @@ from .resources import TabularDataResource
 
 
 DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
-ALGORITHMS_DIR = "algorithms"
-CONFIGURATIONS_DIR = "configurations"
-RESOURCES_DIR = "resources"
-FORMATS_DIR = "formats"
-VIEWS_DIR = "views"
+
+
+# Path helper format strings
+
+
+RESOURCES_DIR = "{base_path}/{run_name}/resources"
+RESOURCE_FILE = "{base_path}/{run_name}/resources/{resource_name}.json"
+VIEWS_DIR = "{base_path}/{algorithm_name}/views"
+VIEW_ARTEFACTS_DIR = "{base_path}/{run_name}/views"
+VIEW_FILE = "{base_path}/{algorithm_name}/views/{view_name}.json"
+ALGORITHM_FILE = "{base_path}/{algorithm_name}/algorithm.json"
+ALGORITHM_DIR = "{base_path}/{algorithm_name}"
+RUN_DIR = "{base_path}/{run_name}"
+RUN_FILE = "{base_path}/{run_name}/run.json"
+FORMAT_FILE = "{base_path}/{algorithm_name}/formats/{format_name}.json"
+DATAPACKAGE_FILE = "{base_path}/datapackage.json"
+
+
+# Custom exceptions
 
 
 class ExecutionError(Exception):
@@ -29,22 +43,45 @@ class ResourceError(Exception):
         self.resource = resource
 
 
+# General helpers
+
+
+def get_algorithm_name(run_name):
+    """Get algorithm name from run name"""
+    return run_name.split(".")[0]
+
+
+# Private helpers
+
+
+def _update_modified_time(base_path: str = DEFAULT_BASE_PATH) -> None:
+    # Update modified time in datapackage.json
+    with open(DATAPACKAGE_FILE.format(base_path=base_path), "r") as f:
+        dp = json.load(f)
+
+    dp["updated"] = int(time.time())
+
+    with open(DATAPACKAGE_FILE.format(base_path=base_path), "w") as f:
+        json.dump(dp, f, indent=2)
+
+
+# Datapackage helpers
+
+
 def execute_datapackage(
     docker_client: DockerClient,
-    configuration_name: str,
+    run_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> str:
     """Execute a datpackage and return execution logs"""
     # Get execution container name from the configuration
-    container_name = load_configuration(configuration_name, base_path)[
-        "container"
-    ]
+    container_name = load_run_configuration(run_name, base_path)["container"]
 
     return execute_container(
         docker_client=docker_client,
         container_name=container_name,
         environment={
-            "CONFIGURATION": configuration_name,
+            "RUN": run_name,
         },
         base_path=base_path,
     )
@@ -52,16 +89,24 @@ def execute_datapackage(
 
 def execute_view(
     docker_client: DockerClient,
+    run_name: str,
     view_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> str:
     """Execute a view and return execution logs"""
-    view = load_view(view_name, base_path)
+    view = load_view(
+        run_name=run_name, view_name=view_name, base_path=base_path
+    )
 
     # Check required resources are populated
     for resource_name in view["resources"]:
         with open(
-            f"{base_path}/{RESOURCES_DIR}/{resource_name}.json", "r"
+            RESOURCE_FILE.format(
+                base_path=base_path,
+                run_name=run_name,
+                resource_name=resource_name,
+            ),
+            "r",
         ) as f:
             if not json.load(f)["data"]:
                 raise ResourceError(
@@ -80,6 +125,7 @@ def execute_view(
         docker_client=docker_client,
         container_name=container_name,
         environment={
+            "RUN": run_name,
             "VIEW": view_name,
         },
         base_path=base_path,
@@ -116,38 +162,90 @@ def execute_container(
 
 
 def load_view(
+    run_name: str,
     view_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Load a view"""
-    with open(f"{base_path}/{VIEWS_DIR}/{view_name}.json", "r") as f:
+    with open(
+        VIEW_FILE.format(
+            base_path=base_path,
+            algorithm_name=get_algorithm_name(run_name),
+            view_name=view_name,
+        ),
+        "r",
+    ) as f:
         return json.load(f)
 
 
-def load_configuration(
-    configuration_name: str,
+def load_algorithm(
+    algorithm_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
     """Load an algorithm configuration"""
     with open(
-        f"{base_path}/{CONFIGURATIONS_DIR}/{configuration_name}.json", "r"
+        ALGORITHM_FILE.format(
+            base_path=base_path, algorithm_name=algorithm_name
+        ),
+        "r",
     ) as f:
         return json.load(f)
 
 
-def write_configuration(
-    configuration: dict,
+def load_run_configuration(
+    run_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
-    """Write an algorithm configuration"""
+    """Load a run configuration"""
     with open(
-        f"{base_path}/{CONFIGURATIONS_DIR}/{configuration['name']}.json",
+        RUN_FILE.format(base_path=base_path, run_name=run_name),
+        "r",
+    ) as f:
+        return json.load(f)
+
+
+def write_run_configuration(
+    run: dict,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> None:
+    """Write a run configuration"""
+    with open(
+        RUN_FILE.format(base_path=base_path, run_name=run["name"]),
         "w",
     ) as f:
-        json.dump(configuration, f, indent=2)
+        json.dump(run, f, indent=2)
+
+    _update_modified_time(base_path=base_path)
+
+
+def load_datapackage_configuration(
+    base_path: str = DEFAULT_BASE_PATH,
+) -> dict:
+    """Load datapackage configuration"""
+    with open(
+        DATAPACKAGE_FILE.format(base_path=base_path),
+        "r",
+    ) as f:
+        return json.load(f)
+
+
+def write_datapackage_configuration(
+    datapackage: dict,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> None:
+    """Write datapackage configuration"""
+    # Set last modified time to now
+    datapackage["updated"] = int(time.time())
+
+    with open(
+        DATAPACKAGE_FILE.format(base_path=base_path),
+        "w",
+    ) as f:
+        json.dump(datapackage, f, indent=2)
 
 
 def load_resource(
+    run_name: str,
     resource_name: str,
     format_name: str | None = None,
     base_path: str = DEFAULT_BASE_PATH,
@@ -155,18 +253,26 @@ def load_resource(
 ) -> TabularDataResource | dict:
     """Load a resource with the specified format"""
     # Load resource with format
-    resource_path = f"{base_path}/{RESOURCES_DIR}/{resource_name}.json"
-
     resource = None
 
-    with open(resource_path, "r") as resource_file:
+    with open(
+        RESOURCE_FILE.format(
+            base_path=base_path, run_name=run_name, resource_name=resource_name
+        ),
+        "r",
+    ) as resource_file:
         # Load resource object
         resource_json = json.load(resource_file)
 
         if format_name is not None:
             # Load format into resource object
             with open(
-                f"{base_path}/{FORMATS_DIR}/{format_name}.json", "r"
+                FORMAT_FILE.format(
+                    base_path=base_path,
+                    algorithm_name=get_algorithm_name(run_name),
+                    format_name=format_name,
+                ),
+                "r",
             ) as format_file:
                 resource_json["format"] = json.load(format_file)["schema"]
 
@@ -202,26 +308,27 @@ def load_resource(
 
 
 def load_resource_by_variable(
+    run_name: str,
     variable_name: str,
-    configuration_name: str,
     base_path: str,
     as_dict: bool = False,  # Load resource as raw dict
 ) -> TabularDataResource | dict:
     """Convenience function for loading resource associated with a variable"""
     # Load configuration to get resource and format names
-    configuration = load_configuration(configuration_name, base_path=base_path)
+    configuration = load_run_configuration(run_name, base_path=base_path)
 
     variable = find_by_name(configuration["data"], variable_name)
 
     if variable is None:
         raise KeyError(
             (
-                f"Can't find variable named {variable_name} in configuration "
-                f"{configuration_name}"
+                f"Can't find variable named {variable_name} in run "
+                f"configuration {run_name}"
             )
         )
 
     return load_resource(
+        run_name=run_name,
         resource_name=variable["resource"],
         format_name=variable["format"],
         base_path=base_path,
@@ -230,6 +337,7 @@ def load_resource_by_variable(
 
 
 def write_resource(
+    run_name: str,
     resource: TabularDataResource | dict,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
@@ -239,24 +347,25 @@ def write_resource(
     else:
         resource_json = resource
 
-    resource_path = f"{base_path}/{RESOURCES_DIR}/{resource_json['name']}.json"
+    # Remove format before writing if present
+    # This should have been loaded by load_resource in most cases
+    resource_json.pop("format", None)
 
-    # Remove format before writing
-    # This should have been loaded by load_resource
-    resource_json.pop("format")
-
-    if resource_json["schema"].get("type") == "format":
-        # Don't write format copy to schema
+    if (
+        isinstance(resource_json["schema"], dict)
+        and resource_json["schema"].get("type") == "format"
+    ):
+        # Don't write copied format to schema
         resource_json["schema"] = "inherit-from-format"
 
-    with open(resource_path, "w") as f:
+    with open(
+        RESOURCE_FILE.format(
+            base_path=base_path,
+            run_name=run_name,
+            resource_name=resource_json["name"],
+        ),
+        "w",
+    ) as f:
         json.dump(resource_json, f, indent=2)
 
-    # Update modified time in datapackage.json
-    with open(f"{base_path}/datapackage.json", "r") as f:
-        dp = json.load(f)
-
-    dp["updated"] = int(time.time())
-
-    with open(f"{base_path}/datapackage.json", "w") as f:
-        json.dump(dp, f, indent=2)
+    _update_modified_time(base_path=base_path)
