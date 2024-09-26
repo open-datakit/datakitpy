@@ -95,7 +95,7 @@ class TabularDataResource:
     @data.setter
     def data(self, data: pd.DataFrame) -> None:
         """Set data, updating column/index information to match schema"""
-        if not self:
+        if not self and not self._resource["schema"]:
             # Unpopulated resource, generate new schema before proceeding
             self._generate_schema(data)
 
