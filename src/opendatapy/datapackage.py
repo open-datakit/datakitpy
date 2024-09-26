@@ -25,7 +25,9 @@ ALGORITHM_FILE = "{base_path}/{algorithm_name}/algorithm.json"
 ALGORITHM_DIR = "{base_path}/{algorithm_name}"
 RUN_DIR = "{base_path}/{run_name}"
 RUN_FILE = "{base_path}/{run_name}/run.json"
-FORMAT_FILE = "{base_path}/{algorithm_name}/formats/{format_name}.json"
+METASCHEMA_FILE = (
+    "{base_path}/{algorithm_name}/metaschemas/{metaschema_name}.json"
+)
 DATAPACKAGE_FILE = "{base_path}/datapackage.json"
 
 
@@ -271,12 +273,11 @@ def init_resource(
 def load_resource(
     run_name: str,
     resource_name: str,
-    format_name: str | None = None,
+    metaschema_name: str | None = None,
     base_path: str = DEFAULT_BASE_PATH,
     as_dict: bool = False,  # Load resource as raw dict
 ) -> TabularDataResource | dict:
-    """Load a resource with the specified format"""
-    # Load resource with format
+    """Load a resource"""
     resource = None
 
     with open(
@@ -288,42 +289,31 @@ def load_resource(
         # Load resource object
         resource_json = json.load(resource_file)
 
-        if format_name is not None:
-            # Load format into resource object
-            with open(
-                FORMAT_FILE.format(
-                    base_path=base_path,
-                    algorithm_name=get_algorithm_name(run_name),
-                    format_name=format_name,
-                ),
-                "r",
-            ) as format_file:
-                resource_json["format"] = json.load(format_file)["schema"]
-
-            # Copy format to resource schema if specified
-            if resource_json["schema"] == "inherit-from-format":
-                # Copy format to schema
-                resource_json["schema"] = resource_json["format"]
-                # Label schema as format copy so we don't overwrite it when
-                # writing back to resource
-                resource_json["schema"]["type"] = "format"
-        else:
-            # TODO: Temporary mostly harmless hack in order to be able
-            # to load resource data into views, where we don't know or care
-            # about the format
-            # Longer-term we should deal with this by handling empty formats
-            # in TabularDataResources, but this will do for now
-            resource_json["format"] = {"hello": "world"}
-
         if as_dict:
             resource = resource_json
         elif (
             resource_json["profile"] == "tabular-data-resource"
             or resource_json["profile"] == "parameter-tabular-data-resource"
         ):
-            # TODO: Create ParameterResource object to handle parameters
-            resource = TabularDataResource(resource=resource_json)
+            # Load metaschema
+            if metaschema_name is not None:
+                with open(
+                    METASCHEMA_FILE.format(
+                        base_path=base_path,
+                        algorithm_name=get_algorithm_name(run_name),
+                        metaschema_name=metaschema_name,
+                    ),
+                    "r",
+                ) as f:
+                    metaschema = json.load(f)
+            else:
+                metaschema = None
+
+            resource = TabularDataResource(
+                resource=resource_json, metaschema=metaschema
+            )
         else:
+            # TODO: Create ParameterResource object to handle parameters
             raise NotImplementedError(
                 f"Unknown resource profile \"{resource_json['profile']}\""
             )
@@ -338,7 +328,7 @@ def load_resource_by_variable(
     as_dict: bool = False,  # Load resource as raw dict
 ) -> TabularDataResource | dict:
     """Convenience function for loading resource associated with a variable"""
-    # Load configuration to get resource and format names
+    # Load configuration to get resource and any applicable metaschema names
     configuration = load_run_configuration(run_name, base_path=base_path)
 
     variable = find_by_name(configuration["data"], variable_name)
@@ -354,7 +344,7 @@ def load_resource_by_variable(
     return load_resource(
         run_name=run_name,
         resource_name=variable["resource"],
-        format_name=variable["format"],
+        metaschema_name=variable.get("metaschema"),
         base_path=base_path,
         as_dict=as_dict,
     )
@@ -371,16 +361,9 @@ def write_resource(
     else:
         resource_json = resource
 
-    # Remove format before writing if present
+    # Remove metaschema before writing if present
     # This should have been loaded by load_resource in most cases
-    resource_json.pop("format", None)
-
-    if (
-        isinstance(resource_json["schema"], dict)
-        and resource_json["schema"].get("type") == "format"
-    ):
-        # Don't write copied format to schema
-        resource_json["schema"] = "inherit-from-format"
+    resource_json.pop("metaschema", None)
 
     with open(
         RESOURCE_FILE.format(
