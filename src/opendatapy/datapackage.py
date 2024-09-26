@@ -354,7 +354,7 @@ def load_resource_by_variable(
     return load_resource(
         run_name=run_name,
         resource_name=variable["resource"],
-        format_name=variable["format"],
+        format_name=variable.get("format"),
         base_path=base_path,
         as_dict=as_dict,
     )
