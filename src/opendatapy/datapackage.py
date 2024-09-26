@@ -2,6 +2,7 @@
 
 import json
 import os
+import shutil
 import time
 from docker import DockerClient
 
@@ -242,6 +243,29 @@ def write_datapackage_configuration(
         "w",
     ) as f:
         json.dump(datapackage, f, indent=2)
+
+
+def init_resource(
+    run_name: str,
+    resource_name: str,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> None:
+    """Initialise a resource for the specified run"""
+    # Copy the resource scaffold from [algorithm]/resources/[resource] to
+    # [algorithm.run]/resources/[resource]
+    src = RESOURCE_FILE.format(
+        base_path=base_path,
+        run_name=get_algorithm_name(run_name),
+        resource_name=resource_name,
+    )
+
+    dst = RESOURCE_FILE.format(
+        base_path=base_path,
+        run_name=run_name,
+        resource_name=resource_name,
+    )
+
+    shutil.copyfile(src, dst)
 
 
 def load_resource(
