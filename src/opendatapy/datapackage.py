@@ -289,36 +289,29 @@ def load_resource(
         # Load resource object
         resource_json = json.load(resource_file)
 
-        if metaschema_name is not None:
-            # Load metaschema into resource object
-            with open(
-                METASCHEMA_FILE.format(
-                    base_path=base_path,
-                    algorithm_name=get_algorithm_name(run_name),
-                    metaschema_name=metaschema_name,
-                ),
-                "r",
-            ) as metaschema_file:
-                resource_json["metaschema"] = json.load(metaschema_file)[
-                    "schema"
-                ]
-        else:
-            # TODO: Temporary mostly harmless hack in order to be able
-            # to load resource data into views, where we don't know or care
-            # about the format
-            # Longer-term we should deal with this by handling empty formats
-            # in TabularDataResources, but this will do for now
-            resource_json["metaschema"] = {"hello": "world"}
-
         if as_dict:
             resource = resource_json
         elif (
             resource_json["profile"] == "tabular-data-resource"
             or resource_json["profile"] == "parameter-tabular-data-resource"
         ):
-            # TODO: Create ParameterResource object to handle parameters
-            resource = TabularDataResource(resource=resource_json)
+            # Load metaschema
+            if metaschema_name is not None:
+                with open(
+                    METASCHEMA_FILE.format(
+                        base_path=base_path,
+                        algorithm_name=get_algorithm_name(run_name),
+                        metaschema_name=metaschema_name,
+                    ),
+                    "r",
+                ) as f:
+                    metaschema = json.load(f)
+
+            resource = TabularDataResource(
+                resource=resource_json, metaschema=metaschema
+            )
         else:
+            # TODO: Create ParameterResource object to handle parameters
             raise NotImplementedError(
                 f"Unknown resource profile \"{resource_json['profile']}\""
             )
