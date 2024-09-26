@@ -306,6 +306,8 @@ def load_resource(
                     "r",
                 ) as f:
                     metaschema = json.load(f)
+            else:
+                metaschema = None
 
             resource = TabularDataResource(
                 resource=resource_json, metaschema=metaschema
