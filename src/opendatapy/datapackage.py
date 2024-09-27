@@ -195,6 +195,20 @@ def load_algorithm(
         return json.load(f)
 
 
+def write_algorithm(
+    algorithm: dict,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> dict:
+    """Write an algorithm configuration"""
+    with open(
+        ALGORITHM_FILE.format(
+            base_path=base_path, algorithm_name=algorithm["name"]
+        ),
+        "w",
+    ) as f:
+        json.dump(algorithm, f, indent=2)
+
+
 def load_run_configuration(
     run_name: str,
     base_path: str = DEFAULT_BASE_PATH,
