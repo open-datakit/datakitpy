@@ -424,21 +424,13 @@ def write_resource_data(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
     """Write updated resource to file"""
+    resource = load_resource(
+        run_name=run_name,
+        resource_name=resource_name,
+        base_path=base_path,
+        as_dict=True,
+    )
 
-    print("==============")
-    import pprint
+    resource["data"] = data_to_dict(data)
 
-    pprint.pprint(data_to_dict(data))
-    print("==============")
-
-    # with open(
-    #     RESOURCE_FILE.format(
-    #         base_path=base_path,
-    #         run_name=run_name,
-    #         resource_name=resource_name,
-    #     ),
-    #     "w",
-    # ) as f:
-    #     json.dump(resource_json, f, indent=2)
-
-    # _update_modified_time(base_path=base_path)
+    write_resource(run_name=run_name, resource=resource, base_path=base_path)
