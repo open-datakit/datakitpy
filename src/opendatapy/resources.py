@@ -9,12 +9,13 @@ from .helpers import has_user_defined_index
 
 
 def data_to_dict(data: pd.DataFrame) -> dict:
-    # Replace any NaNs that pandas inserts sometimes for some reason
-
+    """Convert DataFrame to dict"""
     # Check if the dataframe has a user-defined index
     # This checks if the index matches the auto-generated plain pandas index
     if pd.Index(np.arange(0, len(data))).equals(data.index):
         # Plain index - don't include in dict
+
+        # Replace any NaNs that pandas inserts sometimes for some reason
         return data.replace({np.nan: None}).to_dict(orient="records")
     else:
         # User-defined index - include in dict
@@ -132,18 +133,8 @@ class TabularDataResource:
         """Return dict of resource data in Frictionless Resource format
 
         Data returned inline in JSON record row format"""
-        # Convert data from DataFrame to JSON record row format
         resource_dict = deepcopy(self._resource)
-
-        # Include index in output dict
-        # reset_index() workaround for index=True not working with to_dict
-        # Replace any NaNs that pandas inserts sometimes for some reason
-        resource_dict["data"] = (
-            self._data.reset_index()
-            .replace({np.nan: None})
-            .to_dict(orient="records", index=True)
-        )
-
+        resource_dict["data"] = data_to_dict(self._data)
         return resource_dict
 
     def __bool__(self) -> bool:
