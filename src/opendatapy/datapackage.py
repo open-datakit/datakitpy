@@ -4,10 +4,11 @@ import json
 import os
 import shutil
 import time
+import pandas as pd
 from docker import DockerClient
 
 from .helpers import find_by_name
-from .resources import TabularDataResource
+from .resources import data_to_dict, TabularDataResource
 
 
 DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
@@ -414,3 +415,30 @@ def write_resource(
         json.dump(resource_json, f, indent=2)
 
     _update_modified_time(base_path=base_path)
+
+
+def write_resource_data(
+    run_name: str,
+    resource_name: str,
+    data: pd.DataFrame,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> None:
+    """Write updated resource to file"""
+
+    print("==============")
+    import pprint
+
+    pprint.pprint(data_to_dict(data))
+    print("==============")
+
+    # with open(
+    #     RESOURCE_FILE.format(
+    #         base_path=base_path,
+    #         run_name=run_name,
+    #         resource_name=resource_name,
+    #     ),
+    #     "w",
+    # ) as f:
+    #     json.dump(resource_json, f, indent=2)
+
+    # _update_modified_time(base_path=base_path)

@@ -8,6 +8,11 @@ import numpy as np
 from .helpers import has_user_defined_index
 
 
+def data_to_dict(data: pd.DataFrame) -> dict:
+    # Replace any NaNs that pandas inserts sometimes for some reason
+    return data.replace({np.nan: None}).to_dict(orient="records")
+
+
 class TabularDataResource:
     _data: pd.DataFrame  # Resource data in labelled pandas DataFrame format
     _resource: dict  # Resource metadata in Frictionless JSON format
