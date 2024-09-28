@@ -4,10 +4,11 @@ import json
 import os
 import shutil
 import time
+import pandas as pd
 from docker import DockerClient
 
 from .helpers import find_by_name
-from .resources import TabularDataResource
+from .resources import data_to_dict, TabularDataResource
 
 
 DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
@@ -22,6 +23,7 @@ VIEWS_DIR = "{base_path}/{algorithm_name}/views"
 VIEW_ARTEFACTS_DIR = "{base_path}/{run_name}/views"
 VIEW_FILE = "{base_path}/{algorithm_name}/views/{view_name}.json"
 ALGORITHM_FILE = "{base_path}/{algorithm_name}/algorithm.json"
+RELATIONSHIPS_FILE = "{base_path}/{algorithm_name}/relationships.json"
 ALGORITHM_DIR = "{base_path}/{algorithm_name}"
 RUN_DIR = "{base_path}/{run_name}"
 RUN_FILE = "{base_path}/{run_name}/run.json"
@@ -235,6 +237,31 @@ def write_run_configuration(
     _update_modified_time(base_path=base_path)
 
 
+def load_variable(
+    run_name: str, variable_name: str, base_path: str = DEFAULT_BASE_PATH
+):
+    configuration = load_run_configuration(run_name, base_path=base_path)
+
+    return find_by_name(
+        configuration["data"]["inputs"] + configuration["data"]["outputs"],
+        variable_name,
+    )
+
+
+def load_variable_signature(
+    run_name: str, variable_name: str, base_path: str = DEFAULT_BASE_PATH
+):
+    signature = load_algorithm(
+        algorithm_name=get_algorithm_name(run_name),
+        base_path=base_path,
+    )["signature"]
+
+    return find_by_name(
+        signature["inputs"] + signature["outputs"],
+        variable_name,
+    )
+
+
 def load_datapackage_configuration(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
@@ -343,9 +370,7 @@ def load_resource_by_variable(
 ) -> TabularDataResource | dict:
     """Convenience function for loading resource associated with a variable"""
     # Load configuration to get resource and any applicable metaschema names
-    configuration = load_run_configuration(run_name, base_path=base_path)
-
-    variable = find_by_name(configuration["data"], variable_name)
+    variable = load_variable(run_name, variable_name, base_path)
 
     if variable is None:
         raise KeyError(
@@ -390,3 +415,27 @@ def write_resource(
         json.dump(resource_json, f, indent=2)
 
     _update_modified_time(base_path=base_path)
+
+
+def update_resource(
+    run_name: str,
+    resource_name: str,
+    data: pd.DataFrame | None = None,
+    schema: dict | None = None,
+    base_path: str = DEFAULT_BASE_PATH,
+) -> None:
+    """Partially update a resource"""
+    resource = load_resource(
+        run_name=run_name,
+        resource_name=resource_name,
+        base_path=base_path,
+        as_dict=True,
+    )
+
+    if data is not None:
+        resource["data"] = data_to_dict(data)
+
+    if schema is not None:
+        resource["schema"] = schema
+
+    write_resource(run_name=run_name, resource=resource, base_path=base_path)
