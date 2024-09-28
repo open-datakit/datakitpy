@@ -120,19 +120,12 @@ class TabularDataResource:
 
         # Include index in output dict
         # reset_index() workaround for index=True not working with to_dict
+        # Replace any NaNs that pandas inserts sometimes for some reason
         resource_dict["data"] = (
             self._data.reset_index()
             .replace({np.nan: None})
             .to_dict(orient="records", index=True)
         )
-
-        print("==============")
-        print("resource_dict")
-        print(self._data.reset_index().replace({np.nan: None}))
-        import pprint
-
-        pprint.pprint(resource_dict)
-        print("==============")
 
         return resource_dict
 
