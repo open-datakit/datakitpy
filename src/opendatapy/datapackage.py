@@ -345,7 +345,10 @@ def load_resource_by_variable(
     # Load configuration to get resource and any applicable metaschema names
     configuration = load_run_configuration(run_name, base_path=base_path)
 
-    variable = find_by_name(configuration["data"], variable_name)
+    variable = find_by_name(
+        configuration["data"]["inputs"] + configuration["data"]["outputs"],
+        variable_name,
+    )
 
     if variable is None:
         raise KeyError(
