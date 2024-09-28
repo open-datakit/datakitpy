@@ -123,10 +123,13 @@ class TabularDataResource:
             orient="records", index=True
         )
 
+        print("==============")
         print("resource_dict")
+        print(self._data.reset_index())
         import pprint
 
         pprint.pprint(resource_dict)
+        print("==============")
 
         return resource_dict
 
