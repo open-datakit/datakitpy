@@ -246,6 +246,22 @@ def load_variable(
     )
 
 
+def load_variable_signature(
+    run_name: str, variable_name: str, base_path: str = DEFAULT_BASE_PATH
+):
+    signature = (
+        load_algorithm(
+            algorithm_name=get_algorithm_name(run_name),
+            base_path=base_path,
+        )["signature"],
+    )
+
+    return find_by_name(
+        signature["inputs"] + signature["outputs"],
+        variable_name,
+    )
+
+
 def load_datapackage_configuration(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
