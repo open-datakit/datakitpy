@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 import pandas as pd
+import numpy as np
 
 
 from .helpers import has_user_defined_index
@@ -119,13 +120,15 @@ class TabularDataResource:
 
         # Include index in output dict
         # reset_index() workaround for index=True not working with to_dict
-        resource_dict["data"] = self._data.reset_index().to_dict(
-            orient="records", index=True
+        resource_dict["data"] = (
+            self._data.reset_index()
+            .replace({np.nan: None})
+            .to_dict(orient="records", index=True)
         )
 
         print("==============")
         print("resource_dict")
-        print(self._data.reset_index())
+        print(self._data.reset_index().replace({np.nan: None}))
         import pprint
 
         pprint.pprint(resource_dict)
