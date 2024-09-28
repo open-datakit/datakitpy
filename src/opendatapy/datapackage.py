@@ -417,10 +417,11 @@ def write_resource(
     _update_modified_time(base_path=base_path)
 
 
-def write_resource_data(
+def update_resource(
     run_name: str,
     resource_name: str,
-    data: pd.DataFrame,
+    data: pd.DataFrame | None,
+    schema: dict | None,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
     """Write updated resource to file"""
@@ -431,6 +432,10 @@ def write_resource_data(
         as_dict=True,
     )
 
-    resource["data"] = data_to_dict(data)
+    if data is not None:
+        resource["data"] = data_to_dict(data)
+
+    if schema is not None:
+        resource["schema"] = schema
 
     write_resource(run_name=run_name, resource=resource, base_path=base_path)
