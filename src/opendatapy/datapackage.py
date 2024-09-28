@@ -420,11 +420,11 @@ def write_resource(
 def update_resource(
     run_name: str,
     resource_name: str,
-    data: pd.DataFrame | None,
-    schema: dict | None,
+    data: pd.DataFrame | None = None,
+    schema: dict | None = None,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
-    """Write updated resource to file"""
+    """Partially update a resource"""
     resource = load_resource(
         run_name=run_name,
         resource_name=resource_name,
