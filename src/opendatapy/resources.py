@@ -10,7 +10,19 @@ from .helpers import has_user_defined_index
 
 def data_to_dict(data: pd.DataFrame) -> dict:
     # Replace any NaNs that pandas inserts sometimes for some reason
-    return data.replace({np.nan: None}).to_dict(orient="records")
+
+    # Check if the dataframe has a user-defined index
+    # This checks if the index matches the auto-generated plain pandas index
+    if pd.Index(np.arange(0, len(data))).equals(data.index):
+        # Plain index - don't include in dict
+        return data.replace({np.nan: None}).to_dict(orient="records")
+    else:
+        # User-defined index - include in dict
+        return (
+            data.reset_index()
+            .replace({np.nan: None})
+            .to_dict(orient="records")
+        )
 
 
 class TabularDataResource:
