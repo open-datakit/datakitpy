@@ -123,6 +123,11 @@ class TabularDataResource:
             orient="records", index=True
         )
 
+        print("resource_dict")
+        import pprint
+
+        pprint.pprint(resource_dict)
+
         return resource_dict
 
     def __bool__(self) -> bool:
