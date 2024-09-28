@@ -235,6 +235,17 @@ def write_run_configuration(
     _update_modified_time(base_path=base_path)
 
 
+def load_variable(
+    run_name: str, variable_name: str, base_path: str = DEFAULT_BASE_PATH
+):
+    configuration = load_run_configuration(run_name, base_path=base_path)
+
+    return find_by_name(
+        configuration["data"]["inputs"] + configuration["data"]["outputs"],
+        variable_name,
+    )
+
+
 def load_datapackage_configuration(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
@@ -343,12 +354,7 @@ def load_resource_by_variable(
 ) -> TabularDataResource | dict:
     """Convenience function for loading resource associated with a variable"""
     # Load configuration to get resource and any applicable metaschema names
-    configuration = load_run_configuration(run_name, base_path=base_path)
-
-    variable = find_by_name(
-        configuration["data"]["inputs"] + configuration["data"]["outputs"],
-        variable_name,
-    )
+    variable = load_variable(run_name, variable_name, base_path)
 
     if variable is None:
         raise KeyError(
