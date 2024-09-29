@@ -7,7 +7,7 @@ import numpy as np
 
 def has_default_index(df):
     """Check if a DataFrame has the default RangeIndex"""
-    if pd.Index(np.arange(0, len(df))).equals(df.index):
+    if pd.Index(np.arange(0, len(df))).equals(df.index) and not df.index.name:
         return True
     else:
         return False
