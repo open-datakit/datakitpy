@@ -5,14 +5,19 @@ import pandas as pd
 import numpy as np
 
 
-from .helpers import has_user_defined_index
+def has_default_index(df):
+    """Check if a DataFrame has the default RangeIndex"""
+    if pd.Index(np.arange(0, len(df))).equals(df.index):
+        return True
+    else:
+        return False
 
 
 def data_to_dict(data: pd.DataFrame) -> dict:
     """Convert DataFrame to dict"""
     # Check if the dataframe has a user-defined index
     # This checks if the index matches the auto-generated plain pandas index
-    if pd.Index(np.arange(0, len(data))).equals(data.index):
+    if has_default_index(data):
         # Plain index - don't include in dict
 
         # Replace any NaNs that pandas inserts sometimes for some reason
@@ -106,7 +111,7 @@ class TabularDataResource:
         # Schema exists
 
         # Remove user-defined index if defined
-        if has_user_defined_index(data):
+        if not has_default_index(data):
             data = data.reset_index()
 
         # Set schema field titles from data column names
@@ -162,7 +167,7 @@ class TabularDataResource:
     def _generate_schema(self, data) -> None:
         """Generate and set resource schema from metaschema and data"""
         # Declare schema fields array matching number of actual data fields
-        if has_user_defined_index(data):
+        if not has_default_index(data):
             schema_fields = [None] * len(data.reset_index().columns)
         else:
             schema_fields = [None] * len(data.columns)
