@@ -400,10 +400,6 @@ def write_resource(
     else:
         resource_json = resource
 
-    # Remove metaschema before writing if present
-    # This should have been loaded by load_resource in most cases
-    resource_json.pop("metaschema", None)
-
     with open(
         RESOURCE_FILE.format(
             base_path=base_path,
