@@ -1,7 +1,7 @@
 [project]
 name = "opendatapy"
 version = "0.0.0"
-description = "opendata.studio datapackage helper library"
+description = "opendata.studio dataflow helper library"
 requires-python = ">=3.11"
 authors = [
     { name = "echus", email = "varvara@echus.co" },

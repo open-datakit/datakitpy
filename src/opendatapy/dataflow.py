@@ -1,4 +1,4 @@
-"""Helpers for executing datapackages and loading and writing resources"""
+"""Helpers for executing dataflows and loading and writing resources"""
 
 import json
 import os
@@ -11,7 +11,7 @@ from .helpers import find_by_name
 from .resources import data_to_dict, TabularDataResource
 
 
-DEFAULT_BASE_PATH = os.getcwd()  # Default base datapackage path
+DEFAULT_BASE_PATH = os.getcwd()  # Default base dataflow path
 
 
 # Path helper format strings
@@ -30,7 +30,7 @@ RUN_FILE = "{base_path}/{run_name}/run.json"
 METASCHEMA_FILE = (
     "{base_path}/{algorithm_name}/metaschemas/{metaschema_name}.json"
 )
-DATAPACKAGE_FILE = "{base_path}/datapackage.json"
+DATAFLOW_FILE = "{base_path}/dataflow.json"
 
 
 # Custom exceptions
@@ -60,25 +60,25 @@ def get_algorithm_name(run_name):
 
 
 def _update_modified_time(base_path: str = DEFAULT_BASE_PATH) -> None:
-    # Update modified time in datapackage.json
-    with open(DATAPACKAGE_FILE.format(base_path=base_path), "r") as f:
+    # Update modified time in dataflow.json
+    with open(DATAFLOW_FILE.format(base_path=base_path), "r") as f:
         dp = json.load(f)
 
     dp["updated"] = int(time.time())
 
-    with open(DATAPACKAGE_FILE.format(base_path=base_path), "w") as f:
+    with open(DATAFLOW_FILE.format(base_path=base_path), "w") as f:
         json.dump(dp, f, indent=2)
 
 
-# Datapackage helpers
+# Dataflow helpers
 
 
-def execute_datapackage(
+def execute_dataflow(
     docker_client: DockerClient,
     run_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> str:
-    """Execute a datpackage and return execution logs"""
+    """Execute a dataflow and return execution logs"""
     # Get execution container name from the configuration
     container_name = load_run_configuration(run_name, base_path)["container"]
 
@@ -117,7 +117,7 @@ def execute_view(
                 raise ResourceError(
                     (
                         f"Can't render view with empty resource "
-                        f"{resource_name}. Have you executed the datapackage?"
+                        f"{resource_name}. Have you executed the dataflow?"
                     ),
                     resource=resource_name,
                 )
@@ -148,7 +148,7 @@ def execute_container(
     # in the event of an error
     container = docker_client.containers.run(
         image=container_name,
-        volumes=[f"{base_path}:/usr/src/app/datapackage"],
+        volumes=[f"{base_path}:/usr/src/app/dataflow"],
         environment=environment,
         detach=True,
         user=os.getuid(),  # Run as current user (avoid permissions issues)
@@ -262,30 +262,30 @@ def load_variable_signature(
     )
 
 
-def load_datapackage_configuration(
+def load_dataflow_configuration(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
-    """Load datapackage configuration"""
+    """Load dataflow configuration"""
     with open(
-        DATAPACKAGE_FILE.format(base_path=base_path),
+        DATAFLOW_FILE.format(base_path=base_path),
         "r",
     ) as f:
         return json.load(f)
 
 
-def write_datapackage_configuration(
-    datapackage: dict,
+def write_dataflow_configuration(
+    dataflow: dict,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
-    """Write datapackage configuration"""
+    """Write dataflow configuration"""
     # Set last modified time to now
-    datapackage["updated"] = int(time.time())
+    dataflow["updated"] = int(time.time())
 
     with open(
-        DATAPACKAGE_FILE.format(base_path=base_path),
+        DATAFLOW_FILE.format(base_path=base_path),
         "w",
     ) as f:
-        json.dump(datapackage, f, indent=2)
+        json.dump(dataflow, f, indent=2)
 
 
 def init_resource(
