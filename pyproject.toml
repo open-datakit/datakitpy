@@ -2,6 +2,7 @@
 name = "opendatapy"
 version = "0.1.0"
 description = "opendata.studio dataflow helper library"
+readme = "README.md"
 requires-python = ">=3.11"
 authors = [
     { name = "echus", email = "varvara@echus.co" },
