@@ -1,6 +1,6 @@
 [project]
 name = "opendatapy"
-version = "0.0.0"
+version = "0.1.0"
 description = "opendata.studio dataflow helper library"
 requires-python = ">=3.11"
 authors = [
