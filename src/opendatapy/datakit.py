@@ -1,4 +1,4 @@
-"""Helpers for executing dataflows and loading and writing resources"""
+"""Helpers for executing datakits and loading and writing resources"""
 
 import json
 import os
@@ -11,7 +11,7 @@ from .helpers import find_by_name
 from .resources import data_to_dict, TabularDataResource
 
 
-DEFAULT_BASE_PATH = os.getcwd()  # Default base dataflow path
+DEFAULT_BASE_PATH = os.getcwd()  # Default base datakit path
 
 
 # Path helper format strings
@@ -30,7 +30,7 @@ RUN_FILE = "{base_path}/{run_name}/run.json"
 METASCHEMA_FILE = (
     "{base_path}/{algorithm_name}/metaschemas/{metaschema_name}.json"
 )
-DATAFLOW_FILE = "{base_path}/dataflow.json"
+DATAKIT_FILE = "{base_path}/datakit.json"
 
 
 # Custom exceptions
@@ -60,25 +60,25 @@ def get_algorithm_name(run_name):
 
 
 def _update_modified_time(base_path: str = DEFAULT_BASE_PATH) -> None:
-    # Update modified time in dataflow.json
-    with open(DATAFLOW_FILE.format(base_path=base_path), "r") as f:
+    # Update modified time in datakit.json
+    with open(DATAKIT_FILE.format(base_path=base_path), "r") as f:
         dp = json.load(f)
 
     dp["updated"] = int(time.time())
 
-    with open(DATAFLOW_FILE.format(base_path=base_path), "w") as f:
+    with open(DATAKIT_FILE.format(base_path=base_path), "w") as f:
         json.dump(dp, f, indent=2)
 
 
-# Dataflow helpers
+# Datakit helpers
 
 
-def execute_dataflow(
+def execute_datakit(
     docker_client: DockerClient,
     run_name: str,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> str:
-    """Execute a dataflow and return execution logs"""
+    """Execute a datakit and return execution logs"""
     # Get execution container name from the configuration
     container_name = load_run_configuration(run_name, base_path)["container"]
 
@@ -117,7 +117,7 @@ def execute_view(
                 raise ResourceError(
                     (
                         f"Can't render view with empty resource "
-                        f"{resource_name}. Have you executed the dataflow?"
+                        f"{resource_name}. Have you executed the datakit?"
                     ),
                     resource=resource_name,
                 )
@@ -148,7 +148,7 @@ def execute_container(
     # in the event of an error
     container = docker_client.containers.run(
         image=container_name,
-        volumes=[f"{base_path}:/usr/src/app/dataflow"],
+        volumes=[f"{base_path}:/usr/src/app/datakit"],
         environment=environment,
         detach=True,
         user=os.getuid(),  # Run as current user (avoid permissions issues)
@@ -262,30 +262,30 @@ def load_variable_signature(
     )
 
 
-def load_dataflow_configuration(
+def load_datakit_configuration(
     base_path: str = DEFAULT_BASE_PATH,
 ) -> dict:
-    """Load dataflow configuration"""
+    """Load datakit configuration"""
     with open(
-        DATAFLOW_FILE.format(base_path=base_path),
+        DATAKIT_FILE.format(base_path=base_path),
         "r",
     ) as f:
         return json.load(f)
 
 
-def write_dataflow_configuration(
-    dataflow: dict,
+def write_datakit_configuration(
+    datakit: dict,
     base_path: str = DEFAULT_BASE_PATH,
 ) -> None:
-    """Write dataflow configuration"""
+    """Write datakit configuration"""
     # Set last modified time to now
-    dataflow["updated"] = int(time.time())
+    datakit["updated"] = int(time.time())
 
     with open(
-        DATAFLOW_FILE.format(base_path=base_path),
+        DATAKIT_FILE.format(base_path=base_path),
         "w",
     ) as f:
-        json.dump(dataflow, f, indent=2)
+        json.dump(datakit, f, indent=2)
 
 
 def init_resource(
