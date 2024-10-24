@@ -1,4 +1,4 @@
-# opendatapy
+# datakitpy
 
 This library contains low-level functions used by [opendatacli](https://github.com/open-datakit/cli) to interact with datakits.
 
