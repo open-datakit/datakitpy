@@ -1,8 +1,6 @@
 # opendatapy
 
-A Python library for interacting with opendata.studio datakits.
-
-This library contains low-level functions used by [opends-cli](https://github.com/opendatastudio/cli) to interact with opendata.studio datakits.
+This library contains low-level functions used by [opendatacli](https://github.com/open-datakit/cli) to interact with datakits.
 
 ## Development
 

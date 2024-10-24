@@ -1,7 +1,7 @@
 [project]
 name = "opendatapy"
 version = "0.1.2"
-description = "opendata.studio datakit helper library"
+description = "Datakit helper library"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [
@@ -13,8 +13,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/opendatastudio/opendatapy"
-"Bug Tracker" = "https://github.com/opendatastudio/opendatapy/issues"
+"Homepage" = "https://github.com/open-datakit/opendatapy"
+"Bug Tracker" = "https://github.com/open-datakit/opendatapy/issues"
 
 [project.optional-dependencies]
 development = [
