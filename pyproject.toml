@@ -13,8 +13,8 @@ dependencies = [
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/open-datakit/datakitpy"
-"Bug Tracker" = "https://github.com/open-datakit/datakitpy/issues"
+"Homepage" = "https://github.com/opendatastudio/datakitpy"
+"Bug Tracker" = "https://github.com/opendatastudio/datakitpy/issues"
 
 [project.optional-dependencies]
 development = [
